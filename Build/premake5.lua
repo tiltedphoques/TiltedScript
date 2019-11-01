@@ -62,10 +62,11 @@ workspace ("Tilted Script")
             kind ("ConsoleApp")
             language ("C++")
 
-
             includedirs
             {
                 "../Code/tests/include/",
+                "../Code/script/include/",
+                "../ThirdParty/lua/",
             }
 
              files
@@ -76,7 +77,9 @@ workspace ("Tilted Script")
 
             links
             {
+                "Lua"
             }
+            
 
     premake.extensions.script.generate()
 

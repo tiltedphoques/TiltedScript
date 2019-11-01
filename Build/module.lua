@@ -38,7 +38,7 @@ function script_lua_generate()
 
     project ("Lua")
         kind ("StaticLib")
-        language ("C++")
+        language ("C")
 
         includedirs
         {
