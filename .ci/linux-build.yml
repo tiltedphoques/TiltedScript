@@ -17,6 +17,10 @@ steps:
     displayName: Install
 
   - script: |
+      git clone --recurse-submodules https://github.com/tiltedphoques/TiltedCore.git ../TiltedCore
+    displayName: Clone TiltedCore
+
+  - script: |
       cd Build
       chmod +x ./premake5
       ./MakeGMakeProjects.sh

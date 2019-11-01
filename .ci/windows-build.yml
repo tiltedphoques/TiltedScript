@@ -1,5 +1,9 @@
 steps:
   - script: |
+      git clone --recurse-submodules https://github.com/tiltedphoques/TiltedCore.git ../TiltedCore
+    displayName: Clone TiltedCore
+
+  - script: |
       cd Build
       ./MakeVS2019Projects.bat
     displayName: Generate
