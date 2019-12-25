@@ -13311,7 +13311,7 @@ namespace sol {
 #if defined(SOL_NO_EXCEPTIONS) && SOL_NO_EXCEPTIONS
 						// Is this really worth it?
 						assert(false && "integer value will be misrepresented in lua");
-						lua_pushnumber(L, static_cast<lua_Number>(std::forward<Args>(args)...));
+						//lua_pushnumber(L, static_cast<lua_Number>(std::forward<Args>(args)...));
 						return 1;
 #else
 						throw error(detail::direct_error, "integer value will be misrepresented in lua");
