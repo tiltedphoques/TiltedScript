@@ -20,12 +20,22 @@ function script_generate()
         {
             premake.extensions.script.path .. "/Code/script/include/",
             premake.extensions.core.path .. "/Code/core/include/",
+            premake.extensions.script.path .. "/ThirdParty/lua/",
+            premake.extensions.script.path .. "/ThirdParty/sqlite3/",
         }
 
         files
         {
             premake.extensions.script.path .. "/Code/script/include/**.hpp",
+            premake.extensions.script.path .. "/Code/script/include/**.h",
             premake.extensions.script.path .. "/Code/script/src/**.cpp",
+            premake.extensions.script.path .. "/Code/script/src/**.c",
+        }
+
+        links
+        {
+            "Lua",
+            "sqlite3"
         }
 
     premake.extensions.script.generated = true
@@ -54,6 +64,29 @@ function script_lua_generate()
     premake.extensions.script.lua_generated = true
 end
 
+function script_sqlite3_generate()
+    if premake.extensions.script.sqlite3_generated == true then
+        return
+    end
+
+    project ("sqlite3")
+        kind ("StaticLib")
+        language ("C")
+
+        includedirs
+        {
+            premake.extensions.script.path .. "/ThirdParty/sqlite3/",
+        }
+
+        files
+        {
+            premake.extensions.script.path .. "/ThirdParty/sqlite3/**.h",
+            premake.extensions.script.path .. "/ThirdParty/sqlite3/**.c",
+        }
+
+    premake.extensions.script.sqlite3_generated = true
+end
+
 function script_generate_all()
     
     group ("Libraries")
@@ -61,6 +94,7 @@ function script_generate_all()
 
     group ("ThirdParty")
         script_lua_generate()
+        script_sqlite3_generate()
 
 end
 
