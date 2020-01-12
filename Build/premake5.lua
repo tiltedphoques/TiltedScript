@@ -34,7 +34,7 @@ workspace ("Tilted Script")
 
     filter { "action:gmake*", "language:C++" }
         buildoptions { "-g -fpermissive" }
-        linkoptions ("-lm -lpthread -pthread -Wl,--no-as-needed -lrt -g -fPIC -rdynamic")
+        linkoptions ("-lm -lpthread -pthread -Wl,--no-as-needed -lrt -g -fPIC")
 
     filter { "configurations:Release" }
         defines { "NDEBUG"}
