@@ -1,4 +1,5 @@
 #include "catch.hpp"
+#include <iostream>
 
 extern "C"
 {
