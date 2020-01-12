@@ -77,8 +77,8 @@ workspace ("Tilted Script")
             links
             {
                 "Lua",
-                "sqlite3",
-                "Script"
+                "Script",
+                "sqlite3"
             }
             
 
