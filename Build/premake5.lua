@@ -15,7 +15,6 @@ workspace ("Tilted Script")
     startproject ("Tests")
 
     staticruntime "On"
-    floatingpoint "Fast"
     vectorextensions "SSE2"
     warnings "Extra"
 
