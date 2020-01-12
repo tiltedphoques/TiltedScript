@@ -34,7 +34,7 @@ workspace ("Tilted Script")
 
     filter { "action:gmake*", "language:C++" }
         buildoptions { "-g -fpermissive" }
-        linkoptions ("-lm -lpthread -pthread -Wl,--no-as-needed -lrt -g -fPIC")
+        linkoptions ("-lm -lpthread -pthread -Wl,--no-as-needed -lrt -g -fPIC -rdynamic")
 
     filter { "configurations:Release" }
         defines { "NDEBUG"}
@@ -76,8 +76,8 @@ workspace ("Tilted Script")
 
             links
             {
-                "Lua",
                 "Script",
+                "Lua",
                 "sqlite3"
             }
             
