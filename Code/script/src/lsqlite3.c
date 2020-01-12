@@ -2071,9 +2071,18 @@ static int lsqlite_do_open(lua_State *L, const char *filename, int flags) {
 }
 
 static int lsqlite_open(lua_State *L) {
-    const char *filename = luaL_checkstring(L, 1);
+
+    lua_pushstring(L, "PLUGIN_NAME");  /* push name */
+    lua_gettable(L, LUA_REGISTRYINDEX);  /* retrieve value */
+    const char* filename = lua_tostring(L, -1);  /* convert to string */
+
+    char name[512];
+    strcpy_s(name, 512, "db/");
+    strcat_s(name, 512, filename);
+    strcat_s(name, 512, ".db");
+
     int flags = luaL_optinteger(L, 2, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
-    return lsqlite_do_open(L, filename, flags);
+    return lsqlite_do_open(L, name, flags);
 }
 
 static int lsqlite_open_memory(lua_State *L) {
@@ -2329,6 +2338,7 @@ static const luaL_Reg sqlitelib[] = {
     {"version",         lsqlite_version         },
     {"complete",        lsqlite_complete        },
     {"open_memory",     lsqlite_open_memory     },
+    {"open",            lsqlite_open     },
     {"open_ptr",        lsqlite_open_ptr        },
     {"__newindex",      lsqlite_newindex        },
     {NULL, NULL}
