@@ -73,6 +73,11 @@ function script_sqlite3_generate()
         kind ("StaticLib")
         language ("C")
 
+        defines
+        {
+            "SQLITE_OMIT_LOAD_EXTENSION"
+        }
+
         includedirs
         {
             premake.extensions.script.path .. "/ThirdParty/sqlite3/",
