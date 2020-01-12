@@ -2077,9 +2077,9 @@ static int lsqlite_open(lua_State *L) {
     const char* filename = lua_tostring(L, -1);  /* convert to string */
 
     char name[512];
-    strcpy_s(name, 512, "db/");
-    strcat_s(name, 512, filename);
-    strcat_s(name, 512, ".db");
+    strcpy(name, "db/");
+    strcat(name, filename);
+    strcat(name, ".db");
 
     int flags = luaL_optinteger(L, 2, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
     return lsqlite_do_open(L, name, flags);
