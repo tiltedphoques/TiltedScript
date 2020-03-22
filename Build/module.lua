@@ -32,11 +32,34 @@ function script_generate()
             premake.extensions.script.path .. "/Code/script/src/**.c",
         }
 
+        pchheader ("stdafx.h")
+        pchsource (premake.extensions.script.path .. "Code/script/src/stdafx.cpp")
+        forceincludes
+        {
+            "stdafx.h"
+        }
+
         links
         {
             "Lua",
-            "sqlite3"
+            "sqlite3",
         }
+
+        filter { "action:gmake*", "language:C++" }
+            defines
+            {
+                'POSIX',
+                'LINUX',
+                'GNUC',
+                'GNU_COMPILER',
+            }
+
+            links
+            {
+                "stdc++fs",
+            }
+
+        filter ""
 
     premake.extensions.script.generated = true
 end
@@ -93,7 +116,7 @@ function script_sqlite3_generate()
 end
 
 function script_generate_all()
-    
+
     group ("Libraries")
         script_generate()
 
