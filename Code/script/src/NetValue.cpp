@@ -30,6 +30,8 @@ NetValue::NetValue(bool aValue)
 
 void NetValue::Serialize(TiltedPhoques::Buffer::Writer& aWriter) const noexcept
 {
+    const NetValueParent& parent = *this;
+
     std::visit([&aWriter](auto&& arg)
     {
         using T = std::decay_t<decltype(arg)>;
@@ -45,11 +47,13 @@ void NetValue::Serialize(TiltedPhoques::Buffer::Writer& aWriter) const noexcept
         {
             Serialization::WriteVarInt(aWriter, arg);
         }
-    }, *this);
+    }, parent);
 }
 
 void NetValue::Deserialize(TiltedPhoques::Buffer::Reader& aReader) noexcept
 {
+    NetValueParent& parent = *this;
+
     std::visit([&aReader, this](auto& arg)
     {
         using T = std::decay_t<decltype(arg)>;
@@ -65,7 +69,7 @@ void NetValue::Deserialize(TiltedPhoques::Buffer::Reader& aReader) noexcept
         {
             arg = Serialization::ReadBool(aReader);
         }
-    }, *this);
+    }, parent);
 }
 
 void NetValue::FromObject(sol::object aObject) noexcept
@@ -87,6 +91,8 @@ void NetValue::FromObject(sol::object aObject) noexcept
 
 sol::object NetValue::AsObject(sol::this_state aState) const noexcept
 {
+    const NetValueParent& parent = *this;
+
     auto obj = std::visit([aState](auto&& arg)
     {
         sol::state_view lua(aState);
@@ -94,7 +100,7 @@ sol::object NetValue::AsObject(sol::this_state aState) const noexcept
         using T = std::decay_t<decltype(arg)>;
 
         return sol::object(lua, sol::in_place_type<T>, arg);
-    }, *this);
+    }, parent);
 
     return obj;
 }

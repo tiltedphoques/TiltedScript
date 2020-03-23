@@ -25,15 +25,3 @@ struct NetValue : NetValueParent
     void FromObject(sol::object aObject) noexcept;
     [[nodiscard]] sol::object AsObject(sol::this_state aState) const noexcept;
 };
-
-// GCC is such an unbelievable piece of crap, its std::variant is broken so we must inject stuff in std ! great !
-namespace std
-{
-    template<>
-    struct variant_size<NetValue> : variant_size<NetValueParent> {
-    };
-
-    template<std::size_t I>
-    struct variant_alternative<I, NetValue> : variant_alternative<I, NetValueParent> {
-    };
-}
