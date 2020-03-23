@@ -88,9 +88,9 @@ TEST_CASE("Properties", "[replication.properties]")
     ScriptStore store(true);
     auto pCtx = store.CreateContext("test");
 
-    const sol::object default(pCtx->lua_state(), sol::in_place_type<double>, 42.0);
+    const sol::object def(pCtx->lua_state(), sol::in_place_type<double>, 42.0);
 
-    NetProperty property(0, default);
+    NetProperty property(0, def);
     
     auto storedObj = property.Get();
     REQUIRE(storedObj.get_type() == sol::type::number);

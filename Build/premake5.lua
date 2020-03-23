@@ -79,12 +79,30 @@ workspace ("Tilted Script")
             {
                 "Script",
                 "Core",
+                "mimalloc",
                 "Lua",
                 "sqlite3"
             }
 
+            filter { "action:gmake*", "language:C++" }
+                defines
+                {
+                    'POSIX',
+                    'LINUX',
+                    'GNUC',
+                    'GNU_COMPILER',
+                }
+
+                links
+                {
+                    "stdc++fs"
+                }
+
+            filter ""
+
+
     premake.extensions.script.generate()
     premake.extensions.core.generate()
 
-    
+
 
