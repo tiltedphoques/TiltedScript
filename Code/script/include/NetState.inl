@@ -1,3 +1,5 @@
+#include <NetObject.h>
+
 template<class T>
 void NetState::Visit(const T& acFunctor)
 {
