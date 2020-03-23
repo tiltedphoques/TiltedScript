@@ -2,10 +2,11 @@
 #include <NetObjectDefinition.h>
 #include <NetProperties.h>
 #include <NetRPCs.h>
+#include <NetState.h>
 
-ScriptContext::ScriptContext(String aNamespace, bool aIsAuthority, NetObject::IListener* apListener)
+ScriptContext::ScriptContext(String aNamespace, bool aIsAuthority, NetState& aNetState)
     : m_namespace(std::move(aNamespace))
-    , m_pListener(apListener)
+    , m_state(aNetState)
     , m_isAuthority(aIsAuthority)
 {
     new_usertype<NetProperties>("NetProperties", sol::no_constructor,
@@ -14,6 +15,11 @@ ScriptContext::ScriptContext(String aNamespace, bool aIsAuthority, NetObject::IL
 
     new_usertype<NetRPCs>("NetRPCs", sol::no_constructor,
         sol::meta_function::index, &NetRPCs::Get);
+
+    // Create the type
+    new_usertype<NetObject>("NetObject", sol::no_constructor,
+        sol::meta_function::index, &NetObject::Get,
+        sol::meta_function::new_index, &NetObject::Set);
 
     auto IsAuthorityFunc = [this]() { return IsAuthority(); };
 
@@ -43,7 +49,7 @@ std::pair<bool, String> ScriptContext::LoadScript(const std::filesystem::path& a
     return std::make_pair(true, String());
 }
 
-Outcome<bool, String> ScriptContext::LoadNetworkObject(const std::filesystem::path& acFile)
+Outcome<bool, String> ScriptContext::LoadNetworkObject(const std::filesystem::path& acFile, const std::string& acIdentifier)
 {
     const auto classname = String(acFile.stem().string());
     const auto fullName = m_namespace + "_" + classname;
@@ -62,9 +68,16 @@ Outcome<bool, String> ScriptContext::LoadNetworkObject(const std::filesystem::pa
     if (!result.first)
         return result.second;
 
-    auto pTmpDef = MakeUnique<NetObjectDefinition>(std::ref(*this), std::ref(elementTable), classname, GetNetObjectListener());
+    auto pTmpDef = MakeUnique<NetObjectDefinition>(*this, elementTable, classname, GetNetState());
 
     m_netObjectDefinitions.emplace_back(std::move(pTmpDef));
+
+    auto& scriptVector = GetNetState().m_replicatedScripts[GetNamespace()];
+    auto& replicatedObject = scriptVector.emplace_back();
+
+    replicatedObject.Id = GetNetState().GenerateNetId();
+    replicatedObject.Filename = acIdentifier.c_str();
+    replicatedObject.Content = std::move(LoadFile(acFile));
 
     return true;
 }
@@ -74,9 +87,9 @@ const String& ScriptContext::GetNamespace() const noexcept
     return m_namespace;
 }
 
-NetObject::IListener* ScriptContext::GetNetObjectListener() const noexcept
+NetState& ScriptContext::GetNetState() const noexcept
 {
-    return m_pListener;
+    return m_state;
 }
 
 bool ScriptContext::IsAuthority() const noexcept

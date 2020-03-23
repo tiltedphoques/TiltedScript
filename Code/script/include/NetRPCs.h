@@ -1,5 +1,7 @@
 #pragma once
 
+#include <NetValue.h>
+
 struct NetObjectDefinition;
 struct NetObject;
 
@@ -8,7 +10,9 @@ struct NetRPCs
     struct Call
     {
         uint32_t RpcId;
-        Vector<std::variant<std::string, double, bool>> Args;
+        TiltedPhoques::Vector<NetValue> Args;
+
+        void Serialize(TiltedPhoques::Buffer::Writer& aWriter) const;
     };
 
     NetRPCs(NetObject& aNetObject);
@@ -19,18 +23,23 @@ struct NetRPCs
 
     sol::object Get(const std::string& aKey, sol::this_state aState);
 
-    void Visit(const std::function<void(Call*)>& aFunctor);
+    template<class T>
+    void Process(const T& aFunctor);
 
-    bool Execute(Call* apCall) noexcept;
+    [[nodiscard]] uint32_t Size() const noexcept;
+
+    [[nodiscard]] bool Execute(const Call& aCall) const noexcept;
 
     void Queue(Call aCall) noexcept;
 
 protected:
 
-    void HandleCall(uint32_t aRpcId, const String& aName, sol::variadic_args aArgs);
+    void HandleCall(uint32_t aRpcId, const TiltedPhoques::String& aName, sol::variadic_args aArgs);
 
 private:
 
     NetObject& m_parent;
-    Vector<Call> m_calls;
+    TiltedPhoques::Vector<Call> m_calls;
 };
+
+#include "NetRPCs.inl"

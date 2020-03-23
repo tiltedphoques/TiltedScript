@@ -66,6 +66,7 @@ workspace ("Tilted Script")
                 "../Code/tests/include/",
                 "../Code/script/include/",
                 "../ThirdParty/lua/",
+                premake.extensions.core.path .. "/Code/core/include/",
             }
 
              files
@@ -77,12 +78,13 @@ workspace ("Tilted Script")
             links
             {
                 "Script",
+                "Core",
                 "Lua",
                 "sqlite3"
             }
-            
 
     premake.extensions.script.generate()
+    premake.extensions.core.generate()
 
     
 

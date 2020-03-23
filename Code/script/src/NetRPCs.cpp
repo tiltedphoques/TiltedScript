@@ -1,5 +1,15 @@
 #include <NetObjectDefinition.h>
+#include <NetState.h>
 #include <NetRPCs.h>
+
+void NetRPCs::Call::Serialize(TiltedPhoques::Buffer::Writer& aWriter) const
+{
+    aWriter.WriteBytes(reinterpret_cast<const uint8_t*>(RpcId), sizeof(RpcId));
+    for(auto& arg : Args)
+    {
+        arg.Serialize(aWriter);
+    }
+}
 
 NetRPCs::NetRPCs(NetObject& aNetObject)
     : m_parent(aNetObject)
@@ -24,26 +34,21 @@ sol::object NetRPCs::Get(const std::string& aKey, sol::this_state aState)
     return sol::make_object(aState.L, CallFunc);
 }
 
-void NetRPCs::Visit(const std::function<void(Call*)>& aFunctor)
+uint32_t NetRPCs::Size() const noexcept
 {
-    for(auto& call : m_calls)
-    {
-        aFunctor(&call);
-    }
-
-    m_calls.clear();
+    return m_calls.size();
 }
 
-bool NetRPCs::Execute(Call* apCall) noexcept
+bool NetRPCs::Execute(const Call& aCall) const noexcept
 {
     auto& definition = m_parent.GetDefinition();
     auto& remoteProcedures = definition.GetRemoteProcedures();
 
     for(auto& kvp : remoteProcedures)
     {
-        if(kvp.second.Id == apCall->RpcId && kvp.second.OnCall.valid())
+        if(kvp.second.Id == aCall.RpcId && kvp.second.OnCall.valid())
         {
-            auto result = kvp.second.OnCall(m_parent.shared_from_this(), sol::as_args(apCall->Args));
+            auto result = kvp.second.OnCall(m_parent.shared_from_this(), sol::as_args(aCall.Args));
             if (result.valid())
             {
                 const auto ret = result.get<std::optional<bool>>();
@@ -70,6 +75,8 @@ void NetRPCs::Queue(Call aCall) noexcept
 
 void NetRPCs::HandleCall(uint32_t aRpcId, const String& aName, sol::variadic_args aArgs)
 {
+    TP_UNUSED(aName);
+
     auto& call = m_calls.emplace_back();
     call.RpcId = aRpcId;
 
@@ -87,6 +94,8 @@ void NetRPCs::HandleCall(uint32_t aRpcId, const String& aName, sol::variadic_arg
             break;
         case sol::type::boolean:
             call.Args.push_back(arg.as<bool>());
+            break;
+        default:
             break;
         }
     }

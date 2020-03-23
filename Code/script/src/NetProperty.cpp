@@ -1,6 +1,7 @@
 #include <NetObjectDefinition.h>
 #include <NetProperty.h>
 #include <NetObject.h>
+#include <NetState.h>
 
 NetProperty::NetProperty(uint32_t aId, sol::object aDefault)
     : m_id(aId)
@@ -31,61 +32,25 @@ void NetProperty::MarkDirty(bool aDirty) const
     m_changedOnce = true;
 }
 
-void NetProperty::Update(double aNumber, const SharedPtr<NetObject>& aSelf)
+void NetProperty::Update(const NetValue& aValue, const TiltedPhoques::SharedPtr<NetObject>& aSelf)
 {
     const auto type = m_object.get_type();
 
-    if (type == sol::type::number) [[likely]]
+    const auto obj = aValue.AsObject(m_object.lua_state());
+
+    if (obj.get_type() == type) [[likely]]
     {
-        auto& definition = aSelf->GetDefinition();
-        auto& propertyDef = definition.GetReplicatedProperty(GetId());
+        m_object = obj;
 
-        m_object = sol::make_object(m_object.lua_state(), aNumber);
+        if (aSelf)
+        {
+            auto& definition = aSelf->GetDefinition();
+            auto& propertyDef = definition.GetReplicatedProperty(GetId());
 
-        if (propertyDef.OnRep.valid())
-            TP_UNUSED(propertyDef.OnRep(aSelf));
+            if (propertyDef.OnRep.valid())
+                TP_UNUSED(propertyDef.OnRep(aSelf));
+        }
     }
-    /*else
-        spdlog::error("Bad update type {} {}", static_cast<int>(type), static_cast<int>(sol::type::number));
-    */
-}
-
-void NetProperty::Update(const std::string& acString, const SharedPtr<NetObject>& aSelf)
-{
-    const auto type = m_object.get_type();
-
-    if (type == sol::type::string) [[likely]]
-    {
-        auto& definition = aSelf->GetDefinition();
-        auto& propertyDef = definition.GetReplicatedProperty(GetId());
-
-        m_object = sol::make_object(m_object.lua_state(), acString);
-
-        if (propertyDef.OnRep.valid())
-            TP_UNUSED(propertyDef.OnRep(aSelf));
-    }
-    /*else
-        spdlog::error("Bad update type {} {}", static_cast<int>(type), static_cast<int>(sol::type::number));
-    */
-}
-
-void NetProperty::Update(bool aBoolean, const SharedPtr<NetObject>& aSelf)
-{
-    const auto type = m_object.get_type();
-
-    if (type == sol::type::boolean) [[likely]]
-    {
-        auto& definition = aSelf->GetDefinition();
-        auto& propertyDef = definition.GetReplicatedProperty(GetId());
-
-        m_object = sol::make_object(m_object.lua_state(), aBoolean);
-
-        if (propertyDef.OnRep.valid())
-            TP_UNUSED(propertyDef.OnRep(aSelf));
-    }
-    /*else
-        spdlog::error("Bad update type {} {}", static_cast<int>(type), static_cast<int>(sol::type::number));
-    */
 }
 
 void NetProperty::Set(const sol::object& acObject) noexcept
@@ -108,4 +73,12 @@ void NetProperty::Set(const sol::object& acObject) noexcept
 sol::object NetProperty::Get() const noexcept
 {
     return m_object;
+}
+
+void NetProperty::Serialize(TiltedPhoques::Buffer::Writer& aWriter) const noexcept
+{
+    aWriter.WriteBits(m_id, IdBitSize);
+
+    const NetValue value(m_object);
+    value.Serialize(aWriter);
 }

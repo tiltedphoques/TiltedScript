@@ -4,11 +4,13 @@
 
 struct ScriptContext;
 
+struct NetState;
+
 struct NetObjectDefinition
 {
     struct Property
     {
-        String Name;
+        TiltedPhoques::String Name;
         sol::object Default;
         sol::function OnRep;
     };
@@ -16,27 +18,28 @@ struct NetObjectDefinition
     struct RemoteProcedure
     {
         uint32_t Id{ 0 };
-        String Name;
+        TiltedPhoques::String Name;
         sol::function OnCall;
     };
 
-    NetObjectDefinition(ScriptContext& aContext, sol::table& aTable, String aClassname, NetObject::IListener* apNetObjectListener);
+    NetObjectDefinition(ScriptContext& aContext, sol::table& aTable, TiltedPhoques::String aClassname, NetState& aParentState);
     ~NetObjectDefinition() noexcept = default;
 
     NetObjectDefinition(const NetObjectDefinition&) = default;
     NetObjectDefinition& operator=(const NetObjectDefinition&) = default;
 
-    [[nodiscard]] const String& GetNamespace() const noexcept;
-    [[nodiscard]] const String& GetClassName() const noexcept;
-    [[nodiscard]] const String& GetDisplayName() const noexcept;
+    [[nodiscard]] const TiltedPhoques::String& GetNamespace() const noexcept;
+    [[nodiscard]] const TiltedPhoques::String& GetClassName() const noexcept;
+    [[nodiscard]] const TiltedPhoques::String& GetDisplayName() const noexcept;
 
-    [[nodiscard]] const Vector<Property>& GetReplicatedProperties() const noexcept;
+    [[nodiscard]] const TiltedPhoques::Vector<Property>& GetReplicatedProperties() const noexcept;
     [[nodiscard]] const Property& GetReplicatedProperty(uint32_t aId) const noexcept;
 
-    [[nodiscard]] const Map<std::string, RemoteProcedure>& GetRemoteProcedures() const noexcept;
-    [[nodiscard]] Map<std::string, RemoteProcedure>& GetRemoteProcedures() noexcept;
+    [[nodiscard]] const TiltedPhoques::Map<std::string, RemoteProcedure>& GetRemoteProcedures() const noexcept;
+    [[nodiscard]] TiltedPhoques::Map<std::string, RemoteProcedure>& GetRemoteProcedures() noexcept;
 
-    [[nodiscard]] NetObject::IListener* GetListener() const noexcept;
+    [[nodiscard]] NetState& GetParentState() const noexcept;
+    [[nodiscard]] const TiltedPhoques::Map<std::string, sol::object>& GetDefaultTable() const noexcept;
 
 protected:
 
@@ -54,11 +57,12 @@ private:
 
     friend struct NetProperties;
 
-    Vector<Property> m_replicatedProperties;
-    Vector<Property> m_localProperties;
-    Map<std::string, RemoteProcedure> m_remoteProcedures;
-    String m_className;
-    String m_namespace;
-    String m_displayName;
-    NetObject::IListener* m_pListener;
+    TiltedPhoques::Vector<Property> m_replicatedProperties;
+    TiltedPhoques::Vector<Property> m_localProperties;
+    TiltedPhoques::Map<std::string, RemoteProcedure> m_remoteProcedures;
+    TiltedPhoques::String m_className;
+    TiltedPhoques::String m_namespace;
+    TiltedPhoques::String m_displayName;
+    TiltedPhoques::Map<std::string, sol::object> m_defaultTable;
+    NetState& m_parentState;
 };

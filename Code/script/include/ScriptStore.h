@@ -1,15 +1,20 @@
 #pragma once
 
-#include "ScriptContext.h"
+#include <ScriptContext.h>
+#include <NetState.h>
 
-struct ScriptStore : NetObject::IListener
+struct ScriptStore
 {
+    using String = TiltedPhoques::String;
+
     struct ReplicatedScript
     {
         String Filename;
         uint32_t Id;
         String Content;
     };
+
+    using ReplicateScriptMap = TiltedPhoques::Map<TiltedPhoques::String, TiltedPhoques::Vector<ReplicatedScript>>;
 
     ScriptStore(bool aIsAuthority);
     ~ScriptStore() noexcept;
@@ -18,42 +23,37 @@ struct ScriptStore : NetObject::IListener
 
     [[nodiscard]] bool IsAuthority() const noexcept { return m_authority; }
 
-    void LoadFullScripts(const std::filesystem::path& acBasePath) noexcept;
+    uint32_t LoadFullScripts(const std::filesystem::path& acBasePath) noexcept;
     void LoadNetObjects(const std::filesystem::path& acBasePath, ScriptContext* apContext) noexcept;
 
-    [[nodiscard]] ScriptContext* CreateContext(const String& acNamespace) noexcept;
+    [[nodiscard]] ScriptContext* CreateContext(const TiltedPhoques::String& acNamespace) noexcept;
+    [[nodiscard]] NetState& GetNetState() noexcept;
 
-    void VisitNetObjects(const std::function<void(NetObject*)>& acFunctor);
-    void VisitNewNetObjects(const std::function<void(NetObject*)>& acFunctor);
-    void VisitDeletedObjects(const std::function<void(uint32_t)>& acFunctor);
 
-    void InitializeNewNetObjects();
-
-    NetObject* GetById(uint32_t aId) const noexcept;
-
-    void OnCreate(NetObject* apObject) override;
-    void OnDelete(NetObject* apObject) override;
-
-    uint32_t GenerateNetId() noexcept { return m_netId++; }
 
 protected:
 
     void Reset() noexcept;
 
     virtual void RegisterExtensions(ScriptContext& aContext);
+    virtual void LogScript(const std::string& acLog);
+    virtual void LogInfo(const std::string& acLog);
+    virtual void LogError(const std::string& acLog);
 
-    const auto& GetReplicatedScripts() const noexcept { return m_replicatedScripts; }
+    [[nodiscard]] const ReplicateScriptMap& GetReplicatedScripts() const noexcept;
+    [[nodiscard]] uint32_t GenerateNetId() noexcept;
 
-    Map<String, UniquePtr<ScriptContext>> m_contexts;
+    using ContextMap = TiltedPhoques::Map<String, TiltedPhoques::UniquePtr<ScriptContext>>;
+
+    ContextMap m_contexts;
 
 private:
 
-    Map<String, Vector<ReplicatedScript>> m_replicatedScripts;
-    Map<uint32_t, NetObject*> m_replicatedObjects;
-    Vector<NetObject*> m_newReplicatedObjects;
-    Vector<uint32_t> m_deletedReplicatedObjects;
+    void Print(sol::this_state aState);
 
-    uint32_t m_objectId{ 1 };
+    NetState m_state;
+    
+    
     uint32_t m_netId{ 1 };
     uint32_t m_authority : 1;
 };

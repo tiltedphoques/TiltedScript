@@ -2,10 +2,10 @@
 #include <NetObject.h>
 #include <ScriptContext.h>
 
-NetObjectDefinition::NetObjectDefinition(ScriptContext& aContext, sol::table& aTable, String aClassname, NetObject::IListener* apListener)
+NetObjectDefinition::NetObjectDefinition(ScriptContext& aContext, sol::table& aTable, String aClassname, NetState& aParentState)
     : m_className(std::move(aClassname))
     , m_namespace(aContext.GetNamespace())
-    , m_pListener(apListener)
+    , m_parentState(aParentState)
 {
     m_displayName = m_namespace + "::" + m_className;
 
@@ -54,9 +54,14 @@ Map<std::string, NetObjectDefinition::RemoteProcedure>& NetObjectDefinition::Get
     return m_remoteProcedures;
 }
 
-NetObject::IListener* NetObjectDefinition::GetListener() const noexcept
+NetState& NetObjectDefinition::GetParentState() const noexcept
 {
-    return m_pListener;
+    return m_parentState;
+}
+
+const TiltedPhoques::Map<std::string, sol::object>& NetObjectDefinition::GetDefaultTable() const noexcept
+{
+    return m_defaultTable;
 }
 
 NetObject::Pointer NetObjectDefinition::Create()
@@ -195,16 +200,20 @@ void NetObjectDefinition::AssignIds()
 
 void NetObjectDefinition::DefineScriptType(ScriptContext& aContext, sol::table& aTable)
 {
-    auto NewFunction = [this]() { return Create(); };
-
-    // Create the type
-    auto netObject = aContext.new_usertype<NetObject>(GetClassName().c_str(),
-        "new", NewFunction,
-        "Properties", sol::property(&NetObject::GetProperties),
-        "NetRPCs", sol::property(&NetObject::GetRPCs));
-
     for (auto& kvp : aTable)
     {
-        netObject[kvp.first] = kvp.second;
+        if(kvp.first.get_type() == sol::type::string)
+        {
+            m_defaultTable[kvp.first.as<std::string>()] = kvp.second;
+        }
     }
+
+    auto NewFunction = [this](sol::this_state aState)
+    {
+        auto obj = sol::make_object(aState.L, Create());
+        return obj;
+    };
+
+    auto netObject = aContext.create_named_table(GetClassName().c_str());
+    netObject["new"] = NewFunction;
 }

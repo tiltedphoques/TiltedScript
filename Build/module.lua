@@ -28,6 +28,7 @@ function script_generate()
         {
             premake.extensions.script.path .. "/Code/script/include/**.hpp",
             premake.extensions.script.path .. "/Code/script/include/**.h",
+            premake.extensions.script.path .. "/Code/script/include/**.inl",
             premake.extensions.script.path .. "/Code/script/src/**.cpp",
             premake.extensions.script.path .. "/Code/script/src/**.c",
         }

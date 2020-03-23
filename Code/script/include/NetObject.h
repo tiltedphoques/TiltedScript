@@ -9,13 +9,6 @@ struct NetObject : std::enable_shared_from_this<NetObject>
 {
     using Pointer = TiltedPhoques::SharedPtr<NetObject>;
 
-    struct IListener
-    {
-        virtual ~IListener() = default;
-        virtual void OnCreate(NetObject* apObject) = 0;
-        virtual void OnDelete(NetObject* apObject) = 0;
-    };
-
     NetObject(NetObjectDefinition& aNetObjectDefinition);
     ~NetObject();
 
@@ -28,6 +21,9 @@ struct NetObject : std::enable_shared_from_this<NetObject>
 
     [[nodiscard]] bool IsReplicated() const noexcept;
     [[nodiscard]] bool NeedsReplication() noexcept;
+
+    sol::object Get(const std::string& aKey, sol::this_state aState);
+    void Set(const std::string& key, sol::stack_object value, sol::this_state aState);
 
     [[nodiscard]] NetProperties& GetProperties() noexcept;
     [[nodiscard]] NetRPCs& GetRPCs() noexcept;
@@ -43,6 +39,7 @@ private:
     NetObjectDefinition& m_netObjectDefinition;
     NetProperties m_properties;
     NetRPCs m_remoteProcedures;
+    TiltedPhoques::Map<std::string, sol::object> m_metaTable;
     uint32_t m_id;
     uint32_t m_parentId;
 };

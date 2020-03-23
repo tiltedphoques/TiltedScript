@@ -41,7 +41,7 @@ sol::object NetProperties::Get(const std::string& aKey, sol::this_state aState)
     return make_object(aState.L, sol::nil);
 }
 
-void NetProperties::Set(const std::string& aKey, sol::stack_object aValue, sol::this_state aState)
+void NetProperties::Set(const std::string& aKey, sol::stack_object aValue, sol::this_state)
 {
     {
         auto it = m_replicatedPropertiesNameLookup.find(aKey);

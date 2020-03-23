@@ -1,23 +1,24 @@
 #include "ScriptStore.h"
-#include "StaticFunctions.h"
 
 ScriptStore::ScriptStore(bool aIsAuthority)
     : m_authority(aIsAuthority)
+    , m_state(aIsAuthority)
 {}
 
 ScriptStore::~ScriptStore() noexcept
 {
-    m_replicatedObjects.clear();
     m_contexts.clear();
 }
 
-void ScriptStore::LoadFullScripts(const std::filesystem::path& acBasePath) noexcept
+uint32_t ScriptStore::LoadFullScripts(const std::filesystem::path& acBasePath) noexcept
 {
     if (!is_directory(acBasePath))
         create_directory(acBasePath);
 
     if (!std::filesystem::is_directory("db"))
         std::filesystem::create_directory("db");
+
+    uint32_t counter = 0;
 
     for (auto& file : std::filesystem::directory_iterator(acBasePath))
     {
@@ -30,25 +31,31 @@ void ScriptStore::LoadFullScripts(const std::filesystem::path& acBasePath) noexc
             auto registry = pContext->registry();
             registry["PLUGIN_NAME"] = modName.stem().string();
 
-            // spdlog::info("Loading mod {}...", modName.string());
-
             if (m_authority)
                 LoadNetObjects(acBasePath, pContext);
 
             auto result = pContext->LoadScript(file.path());
 
-            /*
+            std::ostringstream oss;
+
             if (!result.first)
             {
-                spdlog::error("Failed to execute initialization file!\n{}", modName.string(), result.second.c_str());
+                oss << "Failed to execute initialization " << modName << std::endl << result.second.c_str();
+
+                LogError(oss.str());
             }
             else
             {
-                spdlog::info("\t> Initialization executed", modName.string());
+                oss << "Initialization executed " << modName;
+
+                counter++;
+
+                LogInfo(oss.str());
             }
-            */
         }
     }
+
+    return counter;
 }
 
 ScriptContext* ScriptStore::CreateContext(const String& acNamespace) noexcept
@@ -56,11 +63,15 @@ ScriptContext* ScriptStore::CreateContext(const String& acNamespace) noexcept
     auto it = m_contexts.find(acNamespace);
     if(it != std::end(m_contexts))
     {
-        // spdlog::error("Creating a script context with namespace {} but already exists !", acNamespace);
+        std::ostringstream oss;
+        oss << "Creating a script context with namespace " << acNamespace << " but already exists !";
+        LogError(oss.str());
+
         return it->second.get();
     }
 
-    const auto result = m_contexts.insert(std::make_pair(acNamespace, MakeUnique<ScriptContext>(acNamespace, IsAuthority(), this)));
+    auto& netState = GetNetState();
+    const auto result = m_contexts.insert(std::make_pair(acNamespace, MakeUnique<ScriptContext>(acNamespace, IsAuthority(), netState)));
     it = result.first;
     if (it == std::end(m_contexts))
         return nullptr;
@@ -72,98 +83,25 @@ ScriptContext* ScriptStore::CreateContext(const String& acNamespace) noexcept
     return ctx.get();
 }
 
-void ScriptStore::VisitNetObjects(const std::function<void(NetObject*)>& acFunctor)
+NetState& ScriptStore::GetNetState() noexcept
 {
-    for (auto& kvp : m_replicatedObjects)
-    {
-        acFunctor(kvp.second);
-    }
-}
-
-void ScriptStore::VisitNewNetObjects(const std::function<void(NetObject*)>& acFunctor)
-{
-    auto it = std::begin(m_newReplicatedObjects);
-    while (it != std::end(m_newReplicatedObjects))
-    {
-        const auto pObject = *it;
-
-        acFunctor(pObject);
-
-        if (pObject->IsReplicated())
-        {
-            m_replicatedObjects[pObject->GetId()] = pObject;
-
-            // Remove self from the vector
-            std::iter_swap(it, std::end(m_newReplicatedObjects) - 1);
-            m_newReplicatedObjects.pop_back();
-        }
-        else
-            ++it;
-    }
-}
-
-void ScriptStore::VisitDeletedObjects(const std::function<void(uint32_t)>& acFunctor)
-{
-    for(auto id : m_deletedReplicatedObjects)
-    {
-        acFunctor(id);
-    }
-
-    m_deletedReplicatedObjects.clear();
-}
-
-NetObject* ScriptStore::GetById(uint32_t aId) const noexcept
-{
-    const auto it = m_replicatedObjects.find(aId);
-    if (it != std::end(m_replicatedObjects))
-        return it->second;
-        
-    return nullptr;
-}
-
-void ScriptStore::OnCreate(NetObject* apObject)
-{
-    if (apObject->NeedsReplication())
-        m_newReplicatedObjects.push_back(apObject);
-}
-
-void ScriptStore::OnDelete(NetObject* apObject)
-{
-    if (apObject->NeedsReplication()) [[likely]]
-    {
-        if (m_replicatedObjects.erase(apObject->GetId()) > 0) [[likely]]
-        {
-            // Only mark for deletion sync if the object was replicated
-            m_deletedReplicatedObjects.push_back(apObject->GetId());
-            return;
-        }
-
-        // Pop new object if it has been processed yet
-        const auto it = std::find(std::begin(m_newReplicatedObjects), std::end(m_newReplicatedObjects), apObject);
-        if(it != std::end(m_newReplicatedObjects))
-        {
-            std::iter_swap(it, std::end(m_newReplicatedObjects) - 1);
-            m_newReplicatedObjects.pop_back();
-        }
-    }
-
-    
+    return m_state;
 }
 
 void ScriptStore::Reset() noexcept
 {
-    m_replicatedObjects.clear();
-    m_newReplicatedObjects.clear();
-    m_deletedReplicatedObjects.clear();
-    m_replicatedScripts.clear();
     m_contexts.clear();
 
-    m_objectId = 1;
     m_netId = 1;
 }
 
 void ScriptStore::RegisterExtensions(ScriptContext& aContext)
 {
+    static auto Print = [this](sol::this_state aState)
+    {
+        return this->Print(aState);
+    };
+
     using TVec3 = Vector3<float>;
 
     auto vector3Type = aContext.new_usertype<TVec3>("Vec3", sol::constructors<TVec3(), TVec3(float, float, float), TVec3(const TVec3&)>(),
@@ -177,12 +115,71 @@ void ScriptStore::RegisterExtensions(ScriptContext& aContext)
     vector3Type["y"] = &TVec3::m_y;
     vector3Type["z"] = &TVec3::m_z;
 
-    aContext.set_function("print", Lua::Print);
+    aContext.set_function("print", Print);
+}
+
+void ScriptStore::LogScript(const std::string& acLog)
+{
+    std::cout << acLog << std::endl;
+}
+
+void ScriptStore::LogInfo(const std::string& acLog)
+{
+    std::cout << acLog << std::endl;
+}
+
+void ScriptStore::LogError(const std::string& acLog)
+{
+    std::cerr << acLog << std::endl;
+}
+
+uint32_t ScriptStore::GenerateNetId() noexcept
+{
+    return m_netId++;
+}
+
+void ScriptStore::Print(sol::this_state aState)
+{
+    const sol::state_view state(aState);
+
+    std::ostringstream oss;
+    oss << "[script:" << state.registry()["PLUGIN_NAME"].get<std::string>() << "] ";
+
+    const auto L = aState.lua_state();
+
+    const auto count = lua_gettop(L);
+
+    lua_getglobal(L, "tostring");
+
+    for (auto i = 1; i <= count; i++)
+    {
+        lua_pushvalue(L, -1);
+        lua_pushvalue(L, i);
+
+        lua_call(L, 1, 1);
+
+        size_t l;
+        const char* pStr = lua_tolstring(L, -1, &l);
+
+        if (pStr == nullptr)
+            return;
+
+        if (i > 1)
+            oss << '\t';
+
+        oss << pStr;
+
+        lua_pop(L, 1);
+    }
+
+    LogScript(oss.str());
 }
 
 void ScriptStore::LoadNetObjects(const std::filesystem::path& acBasePath, ScriptContext* apContext) noexcept
 {
     const auto netObjectsPath = acBasePath / apContext->GetNamespace() / "net_objects";
+
+    const auto path = acBasePath.parent_path();
 
     if (!is_directory(netObjectsPath))
         return;
@@ -191,22 +188,15 @@ void ScriptStore::LoadNetObjects(const std::filesystem::path& acBasePath, Script
     {
         if (!netFile.is_directory() && netFile.path().extension() == ".lua")
         {
-            const auto result = apContext->LoadNetworkObject(netFile.path());
+            const auto result = apContext->LoadNetworkObject(netFile.path(), netFile.path().lexically_relative(path).string());
             if (!result)
             {
-                // spdlog::error("\t> Failed to load network object {}\n{}", netFile.path().string(), result.GetError().c_str());
+                std::ostringstream oss;
+                oss << "Failed to load network object " << netFile.path() << std::endl << result.GetError().c_str();
+                LogError(oss.str());
+
                 continue;
             }
-
-            if (!IsAuthority())
-                continue;
-
-            auto& scriptVector = m_replicatedScripts[apContext->GetNamespace()];
-            auto& replicatedObject = scriptVector.emplace_back();
-
-            replicatedObject.Id = m_objectId++;
-            replicatedObject.Filename = netFile.path().lexically_relative(acBasePath).string();
-            replicatedObject.Content = std::move(LoadFile(netFile));
         }
     }
 }

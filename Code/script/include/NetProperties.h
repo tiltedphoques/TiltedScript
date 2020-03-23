@@ -26,8 +26,8 @@ private:
     friend struct NetObject;
 
     // We store in a flat array and a lookup map to avoid iterating over one or the other depending on the key we want
-    Vector<NetProperty> m_replicatedProperties;
-    Map<std::string, NetProperty*> m_replicatedPropertiesNameLookup;
+    TiltedPhoques::Vector<NetProperty> m_replicatedProperties;
+    TiltedPhoques::Map<std::string, NetProperty*> m_replicatedPropertiesNameLookup;
     // These do not have an id so just store in a map
-    Map<std::string, sol::object> m_localProperties;
+    TiltedPhoques::Map<std::string, sol::object> m_localProperties;
 };

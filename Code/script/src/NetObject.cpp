@@ -1,19 +1,21 @@
 #include <NetObject.h>
+#include <NetState.h>
 #include <NetObjectDefinition.h>
 
 NetObject::NetObject(NetObjectDefinition& aNetObjectDefinition)
     : m_netObjectDefinition(aNetObjectDefinition)
     , m_properties(aNetObjectDefinition)
     , m_remoteProcedures(*this)
+    , m_metaTable(aNetObjectDefinition.GetDefaultTable())
     , m_id(0)
     , m_parentId(std::numeric_limits<decltype(m_parentId)>::max())
 {
-    aNetObjectDefinition.GetListener()->OnCreate(this);
+    aNetObjectDefinition.GetParentState().OnCreate(this);
 }
 
 NetObject::~NetObject()
 {
-    m_netObjectDefinition.GetListener()->OnDelete(this);
+    m_netObjectDefinition.GetParentState().OnDelete(this);
 }
 
 void NetObject::SetId(uint32_t aId) noexcept
@@ -51,6 +53,22 @@ bool NetObject::IsReplicated() const noexcept
 bool NetObject::NeedsReplication() noexcept
 {
     return GetProperties().HasReplicatedProperties();
+}
+
+sol::object NetObject::Get(const std::string& aKey, sol::this_state aState)
+{
+    if (aKey == "Properties") return sol::make_object(aState.L, GetProperties());
+    if (aKey == "NetRPCs") return sol::make_object(aState.L, GetRPCs());
+
+    return m_metaTable[aKey];
+}
+
+void NetObject::Set(const std::string& aKey, sol::stack_object value, sol::this_state aState)
+{
+    if (aKey == "Properties" || aKey == "NetRPCs") return;
+
+    const sol::object obj = value;
+    m_metaTable[aKey] = obj;
 }
 
 NetProperties& NetObject::GetProperties() noexcept
