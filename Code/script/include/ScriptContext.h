@@ -2,11 +2,7 @@
 
 #include <NetObject.h>
 #include <NetObjectDefinition.h>
-
-namespace std::filesystem
-{
-    class path;
-}
+#include <filesystem>
 
 struct ScriptContext : sol::state
 {
