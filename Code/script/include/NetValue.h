@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Buffer.hpp>
+#include <variant>
 
 using NetValueParent = std::variant<double, std::string, bool>;
 
