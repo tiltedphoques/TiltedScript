@@ -19,6 +19,9 @@ struct NetObject : std::enable_shared_from_this<NetObject>
     [[nodiscard]] bool SetParentId(uint32_t aParentId);
     [[nodiscard]] uint32_t GetParentId() const;
 
+    [[nodiscard]] void SetOwnerId(uint32_t aOwnerId);
+    [[nodiscard]] uint32_t GetOwnerId() const;
+
     [[nodiscard]] bool IsReplicated() const noexcept;
     [[nodiscard]] bool NeedsReplication() noexcept;
 
@@ -42,4 +45,5 @@ private:
     TiltedPhoques::Map<std::string, sol::object> m_metaTable;
     uint32_t m_id;
     uint32_t m_parentId;
+    uint32_t m_ownerId;
 };

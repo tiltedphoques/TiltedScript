@@ -132,7 +132,7 @@ void NetState::ApplyDifferentialSnapshot(TiltedPhoques::Buffer::Reader& aReader)
     }
 }
 
-void NetState::ProcessCallRequest(TiltedPhoques::Buffer::Reader& aReader)
+void NetState::ProcessCallRequest(TiltedPhoques::Buffer::Reader& aReader, uint32_t aOwnerId)
 {
     auto type = static_cast<DiffType>(Serialization::ReadVarInt(aReader));
 
@@ -153,7 +153,9 @@ void NetState::ProcessCallRequest(TiltedPhoques::Buffer::Reader& aReader)
             NetRPCs::Call call;
             call.Deserialize(aReader);
 
-            pObject->GetRPCs().Queue(call);
+            // Don't let people make calls on stuff they don't own
+            if(pObject->GetOwnerId() == aOwnerId)
+                pObject->GetRPCs().Queue(call);
         }
 
         type = static_cast<DiffType>(Serialization::ReadVarInt(aReader));
@@ -234,11 +236,7 @@ bool NetState::GenerateCallRequest(TiltedPhoques::Buffer::Writer& aWriter)
 
         Visit([&aWriter, &count](NetObject* apObject)
             {
-                StackAllocator<1 << 14> stackAllocator;
-
-                Allocator::Push(stackAllocator);
                 Vector<NetRPCs::Call> calls;
-                Allocator::Pop();
 
                 apObject->GetRPCs().Process([&calls](const NetRPCs::Call& aCall)
                     {
@@ -324,13 +322,21 @@ uint32_t NetState::GenerateNetId() noexcept
     return m_netId++;
 }
 
+void NetState::Reset() noexcept
+{
+    m_objectId = 1;
+    m_netId = 1;
+
+    m_remoteObjects.clear();
+    m_deletedReplicatedObjects.clear();
+    m_newReplicatedObjects.clear();
+    m_replicatedObjects.clear();
+    m_replicatedScripts.clear();
+}
+
 void NetState::SerializeFullObject(TiltedPhoques::Buffer::Writer& aWriter, NetObject* apObject, bool aMarkClean)
 {
-    StackAllocator<1 << 14> stackAllocator;
-
-    Allocator::Push(stackAllocator);
     Vector<const NetProperty*> properties;
-    Allocator::Pop();
 
     apObject->GetProperties().Visit([&properties, aMarkClean](const NetProperty* apProperty)
         {
@@ -362,12 +368,8 @@ void NetState::SerializeFullObject(TiltedPhoques::Buffer::Writer& aWriter, NetOb
 
 bool NetState::SerializeUpdateObject(TiltedPhoques::Buffer::Writer& aWriter, NetObject* apObject)
 {
-    StackAllocator<1 << 14> stackAllocator;
-
-    Allocator::Push(stackAllocator);
     Vector<const NetProperty*> properties;
     Vector<NetRPCs::Call> calls;
-    Allocator::Pop();
 
     apObject->GetProperties().Visit([&properties](const NetProperty* apProperty)
         {

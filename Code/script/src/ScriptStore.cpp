@@ -89,6 +89,7 @@ NetState::Pointer ScriptStore::GetNetState() noexcept
 
 void ScriptStore::Reset() noexcept
 {
+    m_state->Reset();
     m_contexts.clear();
 
     m_netId = 1;

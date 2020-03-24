@@ -21,7 +21,7 @@ struct NetState : std::enable_shared_from_this<NetState>
     void LoadDefinitions(TiltedPhoques::Buffer::Reader& aReader);
     void LoadFullSnapshot(TiltedPhoques::Buffer::Reader& aReader);
     void ApplyDifferentialSnapshot(TiltedPhoques::Buffer::Reader& aReader);
-    void ProcessCallRequest(TiltedPhoques::Buffer::Reader& aReader);
+    void ProcessCallRequest(TiltedPhoques::Buffer::Reader& aReader, uint32_t aOwnerId);
 
     void SerializeDefinitions(TiltedPhoques::Buffer::Writer& aWriter);
     void GenerateFullSnapshot(TiltedPhoques::Buffer::Writer& aWriter);
@@ -40,6 +40,8 @@ struct NetState : std::enable_shared_from_this<NetState>
     void OnDelete(NetObject* apObject);
 
     uint32_t GenerateNetId() noexcept;
+
+    void Reset() noexcept;
 
 protected:
 

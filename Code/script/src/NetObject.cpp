@@ -45,6 +45,16 @@ uint32_t NetObject::GetParentId() const
     return m_parentId;
 }
 
+void NetObject::SetOwnerId(uint32_t aOwnerId)
+{
+    m_ownerId = aOwnerId;
+}
+
+uint32_t NetObject::GetOwnerId() const
+{
+    return m_ownerId;
+}
+
 bool NetObject::IsReplicated() const noexcept
 {
     return GetId() != 0;
