@@ -1,10 +1,25 @@
 template<class T>
 void NetRPCs::Process(const T& aFunctor)
 {
-    for (auto& call : m_calls)
+    if (m_calls.empty())
+        return;
+
+    const auto isAuthority = m_parent.GetDefinition().GetParentState()->IsAuthority();
+
+    if (isAuthority)
     {
-        if(Execute(call))
+        for (auto& call : m_calls)
+        {
+            if (Execute(call))
+                aFunctor(call);
+        }
+    }
+    else
+    {
+        for (auto& call : m_calls)
+        {
             aFunctor(call);
+        }
     }
 
     m_calls.clear();

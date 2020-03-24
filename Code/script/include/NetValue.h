@@ -3,7 +3,8 @@
 #include <Buffer.hpp>
 #include <variant>
 
-using NetValueParent = std::variant<double, std::string, bool>;
+// Bool must be index 0 for microsoft not to fuck up
+using NetValueParent = std::variant<bool, std::string, double>;
 
 struct NetValue : NetValueParent
 {

@@ -28,7 +28,6 @@ struct NetRPCs
     void Process(const T& aFunctor);
 
     [[nodiscard]] uint32_t Size() const noexcept;
-
     [[nodiscard]] bool Execute(const Call& aCall) const noexcept;
 
     void Queue(Call aCall) noexcept;

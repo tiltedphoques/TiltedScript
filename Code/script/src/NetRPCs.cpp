@@ -16,9 +16,9 @@ void NetRPCs::Call::Serialize(TiltedPhoques::Buffer::Writer& aWriter) const
 void NetRPCs::Call::Deserialize(TiltedPhoques::Buffer::Reader& aReader)
 {
     RpcId = Serialization::ReadVarInt(aReader);
-    auto count = Serialization::ReadVarInt(aReader);
+    const auto count = Serialization::ReadVarInt(aReader);
     Args.resize(count);
-    for(auto i = 0 ; i < count ; --count)
+    for(auto i = 0 ; i < count ; ++i)
     {
         Args[i].DeserializeFull(aReader);
     }

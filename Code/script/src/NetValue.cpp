@@ -45,7 +45,7 @@ void NetValue::Serialize(Buffer::Writer& aWriter) const noexcept
         }
         else if constexpr (std::is_same_v<T, bool>)
         {
-            Serialization::WriteVarInt(aWriter, arg);
+            Serialization::WriteBool(aWriter, arg);
         }
         else
             static_assert(AlwaysFalse<T>::value, "Missing visit type");
@@ -86,18 +86,18 @@ void NetValue::SerializeFull(TiltedPhoques::Buffer::Writer& aWriter) const noexc
             using T = std::decay_t<decltype(arg)>;
             if constexpr (std::is_same_v<T, std::string>)
             {
-                aWriter.WriteBits(0, 7);
+                aWriter.WriteBits(kString, 7);
                 Serialization::WriteString(aWriter, arg);
             }
             else if constexpr (std::is_same_v<T, double>)
             {
-                aWriter.WriteBits(1, 7);
+                aWriter.WriteBits(kNumber, 7);
                 Serialization::WriteDouble(aWriter, arg);
             }
             else if constexpr (std::is_same_v<T, bool>)
             {
-                aWriter.WriteBits(2, 7);
-                Serialization::WriteVarInt(aWriter, arg);
+                aWriter.WriteBits(kBoolean, 7);
+                Serialization::WriteBool(aWriter, arg);
             }
             else
                 static_assert(AlwaysFalse<T>::value, "Missing visit type");
@@ -130,11 +130,15 @@ void NetValue::FromObject(sol::object aObject) noexcept
     switch(cType)
     {
     case sol::type::number:
-        *this = aObject.as<double>(); break;
+        *this = aObject.as<double>();
+        break;
     case sol::type::string:
-        *this = aObject.as<std::string>(); break;
+        *this = aObject.as<std::string>();
+        break;
     case sol::type::boolean:
-        *this = aObject.as<bool>(); break;
+        // Bool gets converted to double for some reason so force it
+        emplace<0>(aObject.as<bool>());
+        break;
     default:
         break;
     }

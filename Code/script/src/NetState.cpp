@@ -52,12 +52,17 @@ void NetState::LoadDefinitions(TiltedPhoques::Buffer::Reader& aReader)
 void NetState::DeserializeFullObject(TiltedPhoques::Buffer::Reader& aReader)
 {
     const auto id = Serialization::ReadVarInt(aReader);
+    const auto parentId = Serialization::ReadVarInt(aReader);
     const auto classNamespace = Serialization::ReadString(aReader);
     const auto classId = Serialization::ReadVarInt(aReader);
 
     auto& vec = m_replicatedScripts[classNamespace.c_str()];
 
     auto pObject = vec[classId].Definition->Create();
+    const auto result = pObject->SetParentId(parentId);
+    if (!result)
+        m_scriptStore.LogError("Tried to assign a parent id but failed ?!");
+
     pObject->SetId(id);
     m_replicatedObjects[id] = pObject.get();
 
@@ -127,6 +132,34 @@ void NetState::ApplyDifferentialSnapshot(TiltedPhoques::Buffer::Reader& aReader)
     }
 }
 
+void NetState::ProcessCallRequest(TiltedPhoques::Buffer::Reader& aReader)
+{
+    auto type = static_cast<DiffType>(Serialization::ReadVarInt(aReader));
+
+    while (type == kUpdate)
+    {
+        const auto id = Serialization::ReadVarInt(aReader);
+        auto count = Serialization::ReadVarInt(aReader);
+
+        auto pObject = GetById(id);
+        if (!pObject)
+        {
+            assert("Object did not exist !");
+            return;
+        }
+
+        for(; count ; --count)
+        {
+            NetRPCs::Call call;
+            call.Deserialize(aReader);
+
+            pObject->GetRPCs().Queue(call);
+        }
+
+        type = static_cast<DiffType>(Serialization::ReadVarInt(aReader));
+    }
+}
+
 void NetState::SerializeDefinitions(Buffer::Writer& aWriter)
 {
     Serialization::WriteVarInt(aWriter, m_replicatedScripts.size());
@@ -188,6 +221,53 @@ bool NetState::GenerateDifferentialSnapshot(Buffer::Writer& aWriter)
         // Mark EOF
         Serialization::WriteVarInt(aWriter, kEnd);
         return true;
+    }
+
+    return false;
+}
+
+bool NetState::GenerateCallRequest(TiltedPhoques::Buffer::Writer& aWriter)
+{
+    if(!IsAuthority())
+    {
+        uint32_t count = 0;
+
+        Visit([&aWriter, &count](NetObject* apObject)
+            {
+                StackAllocator<1 << 14> stackAllocator;
+
+                Allocator::Push(stackAllocator);
+                Vector<NetRPCs::Call> calls;
+                Allocator::Pop();
+
+                apObject->GetRPCs().Process([&calls](const NetRPCs::Call& aCall)
+                    {
+                        calls.push_back(aCall);
+                    });
+
+                const uint32_t id = apObject->GetId();
+                const uint16_t callCount = calls.size();
+
+                if (callCount)
+                {
+                    ++count;
+
+                    Serialization::WriteVarInt(aWriter, kUpdate);
+                    Serialization::WriteVarInt(aWriter, id);
+                    Serialization::WriteVarInt(aWriter, callCount);
+
+                    for (auto& call : calls)
+                    {
+                        call.Serialize(aWriter);
+                    }
+                }
+            });
+
+        if(count)
+        {
+            Serialization::WriteVarInt(aWriter, kEnd);
+            return true;
+        }
     }
 
     return false;
@@ -261,9 +341,11 @@ void NetState::SerializeFullObject(TiltedPhoques::Buffer::Writer& aWriter, NetOb
         });
 
     const uint32_t id = apObject->GetId();
+    const uint32_t parentId = apObject->GetParentId();
     const uint16_t propertyCount = properties.size();
 
     Serialization::WriteVarInt(aWriter, id);
+    Serialization::WriteVarInt(aWriter, parentId);
     Serialization::WriteString(aWriter, apObject->GetDefinition().GetNamespace().c_str());
     Serialization::WriteVarInt(aWriter, apObject->GetDefinition().GetId());
     Serialization::WriteVarInt(aWriter, propertyCount);
