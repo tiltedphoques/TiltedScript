@@ -7,6 +7,14 @@ using NetValueParent = std::variant<double, std::string, bool>;
 
 struct NetValue : NetValueParent
 {
+    enum Type
+    {
+        kNumber,
+        kBoolean,
+        kString,
+        kCount
+    };
+
     NetValue();
     explicit NetValue(sol::object aObject);
     NetValue(double aValue);

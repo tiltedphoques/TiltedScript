@@ -47,6 +47,8 @@ void NetValue::Serialize(Buffer::Writer& aWriter) const noexcept
         {
             Serialization::WriteVarInt(aWriter, arg);
         }
+        else
+            static_assert(AlwaysFalse<T>::value, "Missing visit type");
     }, parent);
 }
 
@@ -69,6 +71,8 @@ void NetValue::Deserialize(Buffer::Reader& aReader) noexcept
         {
             arg = Serialization::ReadBool(aReader);
         }
+        else
+            static_assert(AlwaysFalse<T>::value, "Missing visit type");
     }, parent);
 }
 
@@ -95,24 +99,26 @@ void NetValue::SerializeFull(TiltedPhoques::Buffer::Writer& aWriter) const noexc
                 aWriter.WriteBits(2, 7);
                 Serialization::WriteVarInt(aWriter, arg);
             }
+            else
+                static_assert(AlwaysFalse<T>::value, "Missing visit type");
         }, parent);
 }
 
 void NetValue::DeserializeFull(TiltedPhoques::Buffer::Reader& aReader) noexcept
 {
-    auto id = Serialization::ReadVarInt(aReader);
-    switch(id)
+    const auto cTypeId = static_cast<Type>(Serialization::ReadVarInt(aReader));
+    switch(cTypeId)
     {
-    case 0:
+    case kString:
         *this = Serialization::ReadString(aReader);
         break;
-    case 1:
+    case kNumber:
         *this = Serialization::ReadDouble(aReader);
         break;
-    case 2:
+    case kBoolean:
         *this = Serialization::ReadBool(aReader);
         break;
-    default:
+    case kCount:
         break;
     }
 }
