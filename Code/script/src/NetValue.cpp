@@ -28,7 +28,7 @@ NetValue::NetValue(bool aValue)
 {
 }
 
-void NetValue::Serialize(TiltedPhoques::Buffer::Writer& aWriter) const noexcept
+void NetValue::Serialize(Buffer::Writer& aWriter) const noexcept
 {
     const NetValueParent& parent = *this;
 
@@ -50,7 +50,7 @@ void NetValue::Serialize(TiltedPhoques::Buffer::Writer& aWriter) const noexcept
     }, parent);
 }
 
-void NetValue::Deserialize(TiltedPhoques::Buffer::Reader& aReader) noexcept
+void NetValue::Deserialize(Buffer::Reader& aReader) noexcept
 {
     NetValueParent& parent = *this;
 
@@ -70,6 +70,51 @@ void NetValue::Deserialize(TiltedPhoques::Buffer::Reader& aReader) noexcept
             arg = Serialization::ReadBool(aReader);
         }
     }, parent);
+}
+
+void NetValue::SerializeFull(TiltedPhoques::Buffer::Writer& aWriter) const noexcept
+{
+    const NetValueParent& parent = *this;
+
+    // Use 7 bits to describe the type so that we get nice optimizations with booleans
+    std::visit([&aWriter](auto&& arg)
+        {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, std::string>)
+            {
+                aWriter.WriteBits(0, 7);
+                Serialization::WriteString(aWriter, arg);
+            }
+            else if constexpr (std::is_same_v<T, double>)
+            {
+                aWriter.WriteBits(1, 7);
+                Serialization::WriteDouble(aWriter, arg);
+            }
+            else if constexpr (std::is_same_v<T, bool>)
+            {
+                aWriter.WriteBits(2, 7);
+                Serialization::WriteVarInt(aWriter, arg);
+            }
+        }, parent);
+}
+
+void NetValue::DeserializeFull(TiltedPhoques::Buffer::Reader& aReader) noexcept
+{
+    auto id = Serialization::ReadVarInt(aReader);
+    switch(id)
+    {
+    case 0:
+        *this = Serialization::ReadString(aReader);
+        break;
+    case 1:
+        *this = Serialization::ReadDouble(aReader);
+        break;
+    case 2:
+        *this = Serialization::ReadBool(aReader);
+        break;
+    default:
+        break;
+    }
 }
 
 void NetValue::FromObject(sol::object aObject) noexcept

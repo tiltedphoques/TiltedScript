@@ -4,7 +4,7 @@
 #include <NetRPCs.h>
 #include <NetState.h>
 
-ScriptContext::ScriptContext(String aNamespace, bool aIsAuthority, NetState& aNetState)
+ScriptContext::ScriptContext(String aNamespace, bool aIsAuthority, TiltedPhoques::SharedPtr<NetState> aNetState)
     : m_namespace(std::move(aNamespace))
     , m_state(aNetState)
     , m_isAuthority(aIsAuthority)
@@ -68,14 +68,11 @@ Outcome<bool, String> ScriptContext::LoadNetworkObject(const std::filesystem::pa
     if (!result.first)
         return result.second;
 
-    auto pTmpDef = MakeUnique<NetObjectDefinition>(*this, elementTable, classname, GetNetState());
+    auto& scriptVector = GetNetState()->m_replicatedScripts[GetNamespace()];
+ 
+    auto pTmpDef = MakeUnique<NetObjectDefinition>(*this, elementTable, classname, GetNetState(), scriptVector.size());
 
-    m_netObjectDefinitions.emplace_back(std::move(pTmpDef));
-
-    auto& scriptVector = GetNetState().m_replicatedScripts[GetNamespace()];
-    auto& replicatedObject = scriptVector.emplace_back();
-
-    replicatedObject.Id = GetNetState().GenerateNetId();
+    auto& replicatedObject = scriptVector.emplace_back(std::move(pTmpDef));
     replicatedObject.Filename = acIdentifier.c_str();
     replicatedObject.Content = std::move(LoadFile(acFile));
 
@@ -87,7 +84,7 @@ const String& ScriptContext::GetNamespace() const noexcept
     return m_namespace;
 }
 
-NetState& ScriptContext::GetNetState() const noexcept
+NetState::Pointer ScriptContext::GetNetState() const noexcept
 {
     return m_state;
 }
@@ -99,7 +96,7 @@ bool ScriptContext::IsAuthority() const noexcept
 
 NetObject::Pointer ScriptContext::Create(const String& acName)
 {
-    auto result = script("return " + acName + ".new()");
+    const auto result = script("return " + acName + ".new()");
     if (result.valid())
     {
         NetObject::Pointer& netObject = result;

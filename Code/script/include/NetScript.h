@@ -1,10 +1,18 @@
 #pragma once
 
+#include <NetObjectDefinition.h>
+
 using String = TiltedPhoques::String;
 
 struct NetScript
 {
+    NetScript(TiltedPhoques::UniquePtr<NetObjectDefinition> apDef) 
+        : Definition(std::move(apDef))
+    {
+        
+    }
+
     String Filename;
-    uint32_t Id;
     String Content;
+    TiltedPhoques::UniquePtr<NetObjectDefinition> Definition;
 };

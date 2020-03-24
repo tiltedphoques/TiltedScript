@@ -22,6 +22,9 @@ struct NetValue : NetValueParent
     void Serialize(TiltedPhoques::Buffer::Writer& aWriter) const noexcept;
     void Deserialize(TiltedPhoques::Buffer::Reader& aReader) noexcept;
 
+    void SerializeFull(TiltedPhoques::Buffer::Writer& aWriter) const noexcept;
+    void DeserializeFull(TiltedPhoques::Buffer::Reader& aReader) noexcept;
+
     void FromObject(sol::object aObject) noexcept;
     [[nodiscard]] sol::object AsObject(sol::this_state aState) const noexcept;
 };

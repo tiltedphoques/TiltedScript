@@ -18,12 +18,12 @@ uint32_t NetProperty::GetId() const noexcept
 
 bool NetProperty::IsDirty() const noexcept
 {
-    return m_dirty == true;
+    return static_cast<bool>(m_dirty);
 }
 
 bool NetProperty::IsNotDefault() const noexcept
 {
-    return (m_changedOnce == true);
+    return static_cast<bool>(m_changedOnce);
 }
 
 void NetProperty::MarkDirty(bool aDirty) const
@@ -77,8 +77,14 @@ sol::object NetProperty::Get() const noexcept
 
 void NetProperty::Serialize(TiltedPhoques::Buffer::Writer& aWriter) const noexcept
 {
-    aWriter.WriteBits(m_id, IdBitSize);
-
     const NetValue value(m_object);
     value.Serialize(aWriter);
+}
+
+void NetProperty::Deserialize(TiltedPhoques::Buffer::Reader& aReader) noexcept
+{
+    NetValue value(m_object);
+    value.Deserialize(aReader);
+
+    m_object = value.AsObject(m_object.lua_state());
 }

@@ -1,13 +1,26 @@
 #include <NetObjectDefinition.h>
 #include <NetState.h>
 #include <NetRPCs.h>
+#include <Serialization.hpp>
 
 void NetRPCs::Call::Serialize(TiltedPhoques::Buffer::Writer& aWriter) const
 {
-    aWriter.WriteBytes(reinterpret_cast<const uint8_t*>(RpcId), sizeof(RpcId));
+    Serialization::WriteVarInt(aWriter, RpcId);
+    Serialization::WriteVarInt(aWriter, Args.size());
     for(auto& arg : Args)
     {
-        arg.Serialize(aWriter);
+        arg.SerializeFull(aWriter);
+    }
+}
+
+void NetRPCs::Call::Deserialize(TiltedPhoques::Buffer::Reader& aReader)
+{
+    RpcId = Serialization::ReadVarInt(aReader);
+    auto count = Serialization::ReadVarInt(aReader);
+    Args.resize(count);
+    for(auto i = 0 ; i < count ; --count)
+    {
+        Args[i].DeserializeFull(aReader);
     }
 }
 
@@ -46,22 +59,30 @@ bool NetRPCs::Execute(const Call& aCall) const noexcept
 
     for(auto& kvp : remoteProcedures)
     {
-        if(kvp.second.Id == aCall.RpcId && kvp.second.OnCall.valid())
+        auto OnCall = kvp.second.OnCall;
+
+        if(kvp.second.Id == aCall.RpcId && OnCall.valid())
         {
-            auto result = kvp.second.OnCall(m_parent.shared_from_this(), sol::as_args(aCall.Args));
+            Vector<NetValueParent> args;
+            for(auto& arg : aCall.Args)
+            {
+                args.emplace_back(arg);
+            }
+
+            auto result = OnCall(m_parent.shared_from_this(), sol::as_args(args));
             if (result.valid())
             {
                 const auto ret = result.get<std::optional<bool>>();
                 if (ret)
                     return *ret;
             }
-            /*
             else
             {
                 sol::error err = result;
-                spdlog::error("Error calling RPC {} with {}", kvp.first, err.what());
+                std::ostringstream oss;
+                oss << "Error calling RPC " << kvp.first << " with " << err.what();
+                std::cout << oss.str() << std::endl;
             }
-            */
         }
     }
 
@@ -79,7 +100,6 @@ void NetRPCs::HandleCall(uint32_t aRpcId, const String& aName, sol::variadic_arg
 
     auto& call = m_calls.emplace_back();
     call.RpcId = aRpcId;
-
     call.Args.reserve(aArgs.size());
 
     for(auto arg : aArgs)

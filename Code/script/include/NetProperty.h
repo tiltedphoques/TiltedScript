@@ -24,6 +24,7 @@ struct NetProperty final
     sol::object Get() const noexcept;
 
     void Serialize(TiltedPhoques::Buffer::Writer& aWriter) const noexcept;
+    void Deserialize(TiltedPhoques::Buffer::Reader& aReader) noexcept;
 
 private:
 

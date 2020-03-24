@@ -2,12 +2,11 @@
 
 ScriptStore::ScriptStore(bool aIsAuthority)
     : m_authority(aIsAuthority)
-    , m_state(aIsAuthority)
+    , m_state(MakeShared<NetState>(*this))
 {}
 
 ScriptStore::~ScriptStore() noexcept
 {
-    m_contexts.clear();
 }
 
 uint32_t ScriptStore::LoadFullScripts(const std::filesystem::path& acBasePath) noexcept
@@ -26,10 +25,7 @@ uint32_t ScriptStore::LoadFullScripts(const std::filesystem::path& acBasePath) n
         {
             const auto modName = file.path().filename();
 
-            const auto pContext = CreateContext(String(modName.stem().u8string()));
-
-            auto registry = pContext->registry();
-            registry["PLUGIN_NAME"] = modName.stem().string();
+            const auto pContext = CreateContext(String(modName.stem().string()));
 
             if (m_authority)
                 LoadNetObjects(acBasePath, pContext);
@@ -70,7 +66,7 @@ ScriptContext* ScriptStore::CreateContext(const String& acNamespace) noexcept
         return it->second.get();
     }
 
-    auto& netState = GetNetState();
+    auto netState = GetNetState();
     const auto result = m_contexts.insert(std::make_pair(acNamespace, MakeUnique<ScriptContext>(acNamespace, IsAuthority(), netState)));
     it = result.first;
     if (it == std::end(m_contexts))
@@ -78,12 +74,15 @@ ScriptContext* ScriptStore::CreateContext(const String& acNamespace) noexcept
 
     auto& ctx = it->second;
 
+    auto registry = ctx->registry();
+    registry["PLUGIN_NAME"] = std::string(acNamespace.c_str());
+
     RegisterExtensions(*ctx);
 
     return ctx.get();
 }
 
-NetState& ScriptStore::GetNetState() noexcept
+NetState::Pointer ScriptStore::GetNetState() noexcept
 {
     return m_state;
 }

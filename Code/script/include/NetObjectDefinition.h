@@ -22,7 +22,7 @@ struct NetObjectDefinition
         sol::function OnCall;
     };
 
-    NetObjectDefinition(ScriptContext& aContext, sol::table& aTable, TiltedPhoques::String aClassname, NetState& aParentState);
+    NetObjectDefinition(ScriptContext& aContext, sol::table& aTable, TiltedPhoques::String aClassname, TiltedPhoques::SharedPtr<NetState> aParentState, uint32_t aId);
     ~NetObjectDefinition() noexcept = default;
 
     NetObjectDefinition(const NetObjectDefinition&) = default;
@@ -31,6 +31,7 @@ struct NetObjectDefinition
     [[nodiscard]] const TiltedPhoques::String& GetNamespace() const noexcept;
     [[nodiscard]] const TiltedPhoques::String& GetClassName() const noexcept;
     [[nodiscard]] const TiltedPhoques::String& GetDisplayName() const noexcept;
+    [[nodiscard]] uint32_t GetId() const noexcept;
 
     [[nodiscard]] const TiltedPhoques::Vector<Property>& GetReplicatedProperties() const noexcept;
     [[nodiscard]] const Property& GetReplicatedProperty(uint32_t aId) const noexcept;
@@ -38,12 +39,13 @@ struct NetObjectDefinition
     [[nodiscard]] const TiltedPhoques::Map<std::string, RemoteProcedure>& GetRemoteProcedures() const noexcept;
     [[nodiscard]] TiltedPhoques::Map<std::string, RemoteProcedure>& GetRemoteProcedures() noexcept;
 
-    [[nodiscard]] NetState& GetParentState() const noexcept;
+    [[nodiscard]] TiltedPhoques::SharedPtr<NetState> GetParentState() const noexcept;
     [[nodiscard]] const TiltedPhoques::Map<std::string, sol::object>& GetDefaultTable() const noexcept;
 
-protected:
-
     [[nodiscard]] NetObject::Pointer Create();
+    [[nodiscard]] NetObject::Pointer CreateLua();
+
+protected:
 
     void ParseTable(sol::table& aTable, ScriptContext& aContext);
     void ParseProperty(const sol::object& aKey, const sol::object& aValue);
@@ -63,6 +65,8 @@ private:
     TiltedPhoques::String m_className;
     TiltedPhoques::String m_namespace;
     TiltedPhoques::String m_displayName;
+    uint32_t m_id;
     TiltedPhoques::Map<std::string, sol::object> m_defaultTable;
-    NetState& m_parentState;
+    TiltedPhoques::SharedPtr<NetState> m_parentState;
+    sol::table m_metatable;
 };

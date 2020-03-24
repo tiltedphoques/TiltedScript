@@ -10,12 +10,12 @@ NetObject::NetObject(NetObjectDefinition& aNetObjectDefinition)
     , m_id(0)
     , m_parentId(std::numeric_limits<decltype(m_parentId)>::max())
 {
-    aNetObjectDefinition.GetParentState().OnCreate(this);
+    aNetObjectDefinition.GetParentState()->OnCreate(this);
 }
 
 NetObject::~NetObject()
 {
-    m_netObjectDefinition.GetParentState().OnDelete(this);
+    m_netObjectDefinition.GetParentState()->OnDelete(this);
 }
 
 void NetObject::SetId(uint32_t aId) noexcept
@@ -58,7 +58,7 @@ bool NetObject::NeedsReplication() noexcept
 sol::object NetObject::Get(const std::string& aKey, sol::this_state aState)
 {
     if (aKey == "Properties") return sol::make_object(aState.L, GetProperties());
-    if (aKey == "NetRPCs") return sol::make_object(aState.L, GetRPCs());
+    if (aKey == "NetRPCs") return sol::make_object(aState.L, &GetRPCs());
 
     return m_metaTable[aKey];
 }

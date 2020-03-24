@@ -13,13 +13,14 @@ struct NetRPCs
         TiltedPhoques::Vector<NetValue> Args;
 
         void Serialize(TiltedPhoques::Buffer::Writer& aWriter) const;
+        void Deserialize(TiltedPhoques::Buffer::Reader& aReader);
     };
 
     NetRPCs(NetObject& aNetObject);
     ~NetRPCs() noexcept = default;
 
-    NetRPCs(const NetRPCs&) = default;
-    NetRPCs& operator=(const NetRPCs&) = default;
+    NetRPCs(const NetRPCs&) = delete;
+    NetRPCs& operator=(const NetRPCs&) = delete;
 
     sol::object Get(const std::string& aKey, sol::this_state aState);
 

@@ -27,20 +27,19 @@ struct ScriptStore
     void LoadNetObjects(const std::filesystem::path& acBasePath, ScriptContext* apContext) noexcept;
 
     [[nodiscard]] ScriptContext* CreateContext(const TiltedPhoques::String& acNamespace) noexcept;
-    [[nodiscard]] NetState& GetNetState() noexcept;
+    [[nodiscard]] NetState::Pointer GetNetState() noexcept;
 
-
+    virtual void LogScript(const std::string& acLog);
+    virtual void LogInfo(const std::string& acLog);
+    virtual void LogError(const std::string& acLog);
 
 protected:
 
     void Reset() noexcept;
 
     virtual void RegisterExtensions(ScriptContext& aContext);
-    virtual void LogScript(const std::string& acLog);
-    virtual void LogInfo(const std::string& acLog);
-    virtual void LogError(const std::string& acLog);
 
-    [[nodiscard]] const ReplicateScriptMap& GetReplicatedScripts() const noexcept;
+
     [[nodiscard]] uint32_t GenerateNetId() noexcept;
 
     using ContextMap = TiltedPhoques::Map<String, TiltedPhoques::UniquePtr<ScriptContext>>;
@@ -51,9 +50,7 @@ private:
 
     void Print(sol::this_state aState);
 
-    NetState m_state;
-    
-    
+    NetState::Pointer m_state;
     uint32_t m_netId{ 1 };
     uint32_t m_authority : 1;
 };

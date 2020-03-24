@@ -1,11 +1,14 @@
 #include <NetObjectDefinition.h>
 #include <NetObject.h>
 #include <ScriptContext.h>
+#include <NetState.h>
+#include <utility>
 
-NetObjectDefinition::NetObjectDefinition(ScriptContext& aContext, sol::table& aTable, String aClassname, NetState& aParentState)
+NetObjectDefinition::NetObjectDefinition(ScriptContext& aContext, sol::table& aTable, String aClassname, TiltedPhoques::SharedPtr<NetState> aParentState, uint32_t aId)
     : m_className(std::move(aClassname))
     , m_namespace(aContext.GetNamespace())
-    , m_parentState(aParentState)
+    , m_parentState(std::move(aParentState))
+    , m_id(aId)
 {
     m_displayName = m_namespace + "::" + m_className;
 
@@ -34,6 +37,11 @@ const String& NetObjectDefinition::GetDisplayName() const noexcept
     return m_displayName;
 }
 
+uint32_t NetObjectDefinition::GetId() const noexcept
+{
+    return m_id;
+}
+
 const Vector<NetObjectDefinition::Property>& NetObjectDefinition::GetReplicatedProperties() const noexcept
 {
     return m_replicatedProperties;
@@ -54,7 +62,7 @@ Map<std::string, NetObjectDefinition::RemoteProcedure>& NetObjectDefinition::Get
     return m_remoteProcedures;
 }
 
-NetState& NetObjectDefinition::GetParentState() const noexcept
+NetState::Pointer NetObjectDefinition::GetParentState() const noexcept
 {
     return m_parentState;
 }
@@ -67,6 +75,15 @@ const TiltedPhoques::Map<std::string, sol::object>& NetObjectDefinition::GetDefa
 NetObject::Pointer NetObjectDefinition::Create()
 {
     return MakeShared<NetObject>(*this);
+}
+
+NetObject::Pointer NetObjectDefinition::CreateLua()
+{
+    auto result = m_metatable["new"]();
+
+    NetObject::Pointer ptr = result;
+
+    return ptr;
 }
 
 void NetObjectDefinition::ParseTable(sol::table& aTable, ScriptContext& aContext)
@@ -166,10 +183,10 @@ void NetObjectDefinition::ParseRPC(const sol::object& aKey, const sol::object& a
         }
         else
         {
-            callback = rpcTable["OnProxy"];
-            if(callback.valid())
+            auto callbackProxy = rpcTable["OnProxy"];
+            if(callbackProxy.valid())
             {
-                rpc.OnCall = callback;
+                rpc.OnCall = callbackProxy;
             }
         }
     }
@@ -214,6 +231,6 @@ void NetObjectDefinition::DefineScriptType(ScriptContext& aContext, sol::table& 
         return obj;
     };
 
-    auto netObject = aContext.create_named_table(GetClassName().c_str());
-    netObject["new"] = NewFunction;
+    m_metatable = aContext.create_named_table(GetClassName().c_str());
+    m_metatable["new"] = NewFunction;
 }
