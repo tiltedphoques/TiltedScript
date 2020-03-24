@@ -70,7 +70,7 @@ Outcome<bool, String> ScriptContext::LoadNetworkObject(const std::filesystem::pa
 
     auto& scriptVector = GetNetState()->m_replicatedScripts[GetNamespace()];
  
-    auto pTmpDef = MakeUnique<NetObjectDefinition>(*this, elementTable, classname, GetNetState(), scriptVector.size());
+    auto pTmpDef = MakeUnique<NetObjectDefinition>(*this, elementTable, classname, GetNetState(), static_cast<uint32_t>(scriptVector.size()));
 
     auto& replicatedObject = scriptVector.emplace_back(std::move(pTmpDef));
     replicatedObject.Filename = acIdentifier.c_str();

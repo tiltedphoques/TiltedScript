@@ -1,3 +1,5 @@
+#include "NetObject.h"
+
 template<class T>
 void NetRPCs::Process(const T& aFunctor)
 {
