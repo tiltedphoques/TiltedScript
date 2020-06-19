@@ -37,7 +37,7 @@ void NetValue::Serialize(Buffer::Writer& aWriter) const noexcept
         using T = std::decay_t<decltype(arg)>;
         if constexpr (std::is_same_v<T, std::string>)
         {
-            Serialization::WriteString(aWriter, arg);
+            Serialization::WriteString(aWriter, String(arg.c_str()));
         }
         else if constexpr (std::is_same_v<T, double>)
         {
@@ -87,7 +87,7 @@ void NetValue::SerializeFull(TiltedPhoques::Buffer::Writer& aWriter) const noexc
             if constexpr (std::is_same_v<T, std::string>)
             {
                 aWriter.WriteBits(kString, 7);
-                Serialization::WriteString(aWriter, arg);
+                Serialization::WriteString(aWriter, String(arg.c_str()));
             }
             else if constexpr (std::is_same_v<T, double>)
             {
@@ -110,7 +110,7 @@ void NetValue::DeserializeFull(TiltedPhoques::Buffer::Reader& aReader) noexcept
     switch(cTypeId)
     {
     case kString:
-        *this = Serialization::ReadString(aReader);
+        *this = std::string(Serialization::ReadString(aReader).c_str());
         break;
     case kNumber:
         *this = Serialization::ReadDouble(aReader);
