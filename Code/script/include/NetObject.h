@@ -2,6 +2,7 @@
 
 #include <NetProperties.h>
 #include <NetRPCs.h>
+#include <TiltedCore/Platform.hpp>
 
 struct NetObjectDefinition;
 

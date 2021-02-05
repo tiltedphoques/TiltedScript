@@ -1,3 +1,4 @@
+
 #include "catch.hpp"
 
 extern "C"
@@ -11,8 +12,9 @@ extern "C"
 // end stl
 
 // TiltedCore
-#include "Stl.hpp"
-#include "Outcome.hpp"
+
+#include <TiltedCore/Stl.hpp>
+#include <TiltedCore/Outcome.hpp>
 // end TiltedCore
 
 #include "sol.hpp"

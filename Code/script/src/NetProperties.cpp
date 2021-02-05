@@ -58,7 +58,7 @@ void NetProperties::Set(const std::string& aKey, sol::stack_object aValue, sol::
         if (it != std::end(m_localProperties))
         {
             const sol::object value = aValue;
-            it->second = value;
+            it.value() = value;
         }
     }
 }

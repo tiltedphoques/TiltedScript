@@ -1,7 +1,10 @@
 #include <NetObjectDefinition.h>
 #include <NetState.h>
 #include <NetRPCs.h>
-#include <Serialization.hpp>
+#include <TiltedCore/Serialization.hpp>
+#include <iostream>
+
+using TiltedPhoques::Serialization;
 
 void NetRPCs::Call::Serialize(TiltedPhoques::Buffer::Writer& aWriter) const
 {
@@ -63,7 +66,7 @@ bool NetRPCs::Execute(const Call& aCall) const noexcept
 
         if(kvp.second.Id == aCall.RpcId && OnCall.valid())
         {
-            Vector<NetValueParent> args;
+            TiltedPhoques::Vector<NetValueParent> args;
             for(auto& arg : aCall.Args)
             {
                 args.emplace_back(arg);

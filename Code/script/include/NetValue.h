@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Buffer.hpp>
+#include <sol.hpp>
+#include <TiltedCore/Buffer.hpp>
 #include <variant>
 
 // Bool must be index 0 for microsoft not to fuck up

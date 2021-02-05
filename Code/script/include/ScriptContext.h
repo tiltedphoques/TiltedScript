@@ -4,6 +4,8 @@
 #include <NetObjectDefinition.h>
 #include <filesystem>
 
+#include <TiltedCore/Outcome.hpp>
+
 struct ScriptContext : sol::state
 {
     ScriptContext(TiltedPhoques::String aNamespace, bool aIsAuthority, TiltedPhoques::SharedPtr<NetState> aNetState);

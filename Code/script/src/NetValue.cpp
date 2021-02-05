@@ -1,7 +1,11 @@
+
 #include <NetValue.h>
-#include <Serialization.hpp>
+#include <TiltedCore/Buffer.hpp>
+#include <TiltedCore/Serialization.hpp>
 
 using TiltedPhoques::Serialization;
+using TiltedPhoques::Buffer;
+using TiltedPhoques::String;
 
 NetValue::NetValue()
     : NetValueParent()

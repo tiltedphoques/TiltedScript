@@ -3,6 +3,9 @@
 #include <NetProperties.h>
 #include <NetRPCs.h>
 #include <NetState.h>
+#include <lsqlite3.h>
+
+#include <TiltedCore/Filesystem.hpp>
 
 ScriptContext::ScriptContext(String aNamespace, bool aIsAuthority, TiltedPhoques::SharedPtr<NetState> aNetState)
     : m_namespace(std::move(aNamespace))
@@ -49,7 +52,7 @@ std::pair<bool, String> ScriptContext::LoadScript(const std::filesystem::path& a
     return std::make_pair(true, String());
 }
 
-Outcome<bool, String> ScriptContext::LoadNetworkObject(const std::filesystem::path& acFile, const std::string& acIdentifier)
+TiltedPhoques::Outcome<bool, String> ScriptContext::LoadNetworkObject(const std::filesystem::path& acFile, const std::string& acIdentifier)
 {
     const auto classname = String(acFile.stem().string());
     const auto fullName = m_namespace + "_" + classname;
@@ -70,11 +73,11 @@ Outcome<bool, String> ScriptContext::LoadNetworkObject(const std::filesystem::pa
 
     auto& scriptVector = GetNetState()->m_replicatedScripts[GetNamespace()];
  
-    auto pTmpDef = MakeUnique<NetObjectDefinition>(*this, elementTable, classname, GetNetState(), static_cast<uint32_t>(scriptVector.size()));
+    auto pTmpDef = TiltedPhoques::MakeUnique<NetObjectDefinition>(*this, elementTable, classname, GetNetState(), static_cast<uint32_t>(scriptVector.size()));
 
     auto& replicatedObject = scriptVector.emplace_back(std::move(pTmpDef));
     replicatedObject.Filename = acIdentifier.c_str();
-    replicatedObject.Content = std::move(LoadFile(acFile));
+    replicatedObject.Content = std::move(TiltedPhoques::LoadFile(acFile));
 
     return true;
 }

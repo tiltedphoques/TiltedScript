@@ -1,9 +1,15 @@
 #include "NetState.h"
 #include "NetObject.h"
 #include "NetObjectDefinition.h"
-#include "Serialization.hpp"
+#include "TiltedCore/Serialization.hpp"
 #include "ScriptStore.h"
 #include "ScriptContext.h"
+
+#include <fstream>
+
+using TiltedPhoques::Serialization;
+using TiltedPhoques::Buffer;
+using TiltedPhoques::Vector;
 
 NetState::NetState(ScriptStore& aScriptStore)
     : m_scriptStore(aScriptStore)

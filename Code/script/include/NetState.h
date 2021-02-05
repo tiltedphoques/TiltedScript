@@ -2,10 +2,9 @@
 
 #include <NetScript.h>
 #include <NetObject.h>
-#include <Buffer.hpp>
+#include <TiltedCore/Buffer.hpp>
 
 struct ScriptStore;
-
 
 struct NetState : std::enable_shared_from_this<NetState>
 {

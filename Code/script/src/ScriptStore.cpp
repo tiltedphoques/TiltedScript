@@ -1,9 +1,11 @@
 #include "ScriptStore.h"
+#include <iostream>
+
+#include <TiltedCore/Vector3.hpp>
 
 ScriptStore::ScriptStore(bool aIsAuthority)
-    : m_authority(aIsAuthority)
-    , m_state(MakeShared<NetState>(*this))
-{}
+    : m_authority(aIsAuthority),
+      m_state(TiltedPhoques::MakeShared<NetState>(*this)) {}
 
 ScriptStore::~ScriptStore() noexcept
 {
@@ -67,7 +69,9 @@ ScriptContext* ScriptStore::CreateContext(const String& acNamespace) noexcept
     }
 
     auto netState = GetNetState();
-    const auto result = m_contexts.insert(std::make_pair(acNamespace, MakeUnique<ScriptContext>(acNamespace, IsAuthority(), netState)));
+    const auto result = m_contexts.insert(
+        std::make_pair(acNamespace, TiltedPhoques::MakeUnique<ScriptContext>(
+                                        acNamespace, IsAuthority(), netState)));
     it = result.first;
     if (it == std::end(m_contexts))
         return nullptr;
@@ -102,7 +106,7 @@ void ScriptStore::RegisterExtensions(ScriptContext& aContext)
         return this->Print(aState);
     };
 
-    using TVec3 = Vector3<float>;
+    using TVec3 = TiltedPhoques::Vector3<float>;
 
     auto vector3Type = aContext.new_usertype<TVec3>("Vec3", sol::constructors<TVec3(), TVec3(float, float, float), TVec3(const TVec3&)>(),
         sol::meta_function::addition, &TVec3::operator+,

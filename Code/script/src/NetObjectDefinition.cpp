@@ -42,7 +42,7 @@ uint32_t NetObjectDefinition::GetId() const noexcept
     return m_id;
 }
 
-const Vector<NetObjectDefinition::Property>& NetObjectDefinition::GetReplicatedProperties() const noexcept
+const TiltedPhoques::Vector<NetObjectDefinition::Property>& NetObjectDefinition::GetReplicatedProperties() const noexcept
 {
     return m_replicatedProperties;
 }
@@ -52,12 +52,12 @@ const NetObjectDefinition::Property& NetObjectDefinition::GetReplicatedProperty(
     return m_replicatedProperties[aId];
 }
 
-const Map<std::string, NetObjectDefinition::RemoteProcedure>& NetObjectDefinition::GetRemoteProcedures() const noexcept
+const TiltedPhoques::Map<std::string, NetObjectDefinition::RemoteProcedure>& NetObjectDefinition::GetRemoteProcedures() const noexcept
 {
     return m_remoteProcedures;
 }
 
-Map<std::string, NetObjectDefinition::RemoteProcedure>& NetObjectDefinition::GetRemoteProcedures() noexcept
+TiltedPhoques::Map<std::string, NetObjectDefinition::RemoteProcedure>& NetObjectDefinition::GetRemoteProcedures() noexcept
 {
     return m_remoteProcedures;
 }
@@ -74,7 +74,7 @@ const TiltedPhoques::Map<std::string, sol::object>& NetObjectDefinition::GetDefa
 
 NetObject::Pointer NetObjectDefinition::Create()
 {
-    return MakeShared<NetObject>(*this);
+  return TiltedPhoques::MakeShared<NetObject>(*this);
 }
 
 NetObject::Pointer NetObjectDefinition::CreateLua()
@@ -201,7 +201,7 @@ void NetObjectDefinition::AssignIds()
     });
 
     // Sort by name for stable ids, we don't care if the order of RPCs is changed
-    Vector<std::string> rpcNames;
+    TiltedPhoques::Vector<std::string> rpcNames;
     for (auto& rpc : m_remoteProcedures)
     {
         rpcNames.push_back(rpc.first);

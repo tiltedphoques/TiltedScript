@@ -2,15 +2,15 @@
 
 #define NOMINMAX
 
-#include <Platform.hpp>
+#include <TiltedCore/Platform.hpp>
 #include <cstdint>
 
-#include <StackAllocator.hpp>
-#include <ScratchAllocator.hpp>
-#include <Stl.hpp>
-#include <Outcome.hpp>
-#include <Vector3.hpp>
-#include <Filesystem.hpp>
+#include <TiltedCore/StackAllocator.hpp>
+#include <TiltedCore/ScratchAllocator.hpp>
+#include <TiltedCore/Stl.hpp>
+#include <TiltedCore/Outcome.hpp>
+#include <TiltedCore/Vector3.hpp>
+#include <TiltedCore/Filesystem.hpp>
 
 #include <any>
 #include <mutex>
