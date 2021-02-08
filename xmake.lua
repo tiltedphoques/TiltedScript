@@ -15,16 +15,34 @@ if is_mode("release") then
     set_optimize("fastest")
 end
 
+target("lua")
+    set_kind("static")
+    set_group("Libraries")
+    set_languages("c11")
+    add_files("ThirdParty/lua/*.c")
+    add_headerfiles("ThirdParty/lua/*.h")
+    add_includedirs("ThirdParty/lua", {public = true})
+
+target("sqlite3")
+    set_kind("static")
+    set_group("Libraries")
+    set_languages("c11")
+    add_files("ThirdParty/sqlite3/sqlite3.c")
+    add_headerfiles("ThirdParty/sqlite3/sqlite3.h")
+    add_includedirs("ThirdParty/sqlite3", {public = true})
+    add_defines("SQLITE_OMIT_LOAD_EXTENSION")
+
 target("TiltedScript")
     set_kind("static")
     set_group("Libraries")
     add_files("Code/script/src/*.cpp")
-    add_includedirs("Code/script/include/", "ThirdParty/lua/", "ThirdParty/sqlite3",{public = true})
+    add_includedirs("Code/script/include/", "ThirdParty/lua/", "ThirdParty/sqlite3", {public = true})
     add_headerfiles(
         "Code/script/include/*.hpp", 
         "Code/script/include/*.h", 
         "Code/script/include/*.inl", 
     {prefixdir = "TiltedScript"})
+    add_deps("lua", "sqlite3")
     add_packages("tiltedcore", "mimalloc", "hopscotch-map")
 
 target("TiltedScript_Tests")
