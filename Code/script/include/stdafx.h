@@ -25,8 +25,9 @@
 extern "C"
 {
 #include <lua.h>
-#include <lsqlite3.h>
 }
+
+#include <lsqlite3.h>
 
 #define SOL_ALL_SAFETIES_ON 1
 #include <sol.hpp>

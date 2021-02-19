@@ -2,8 +2,12 @@ set_languages("cxx17")
 
 set_xmakever("2.5.1")
 
-add_requires("tiltedcore", "mimalloc", "hopscotch-map", {configs = {rltgenrandom = true }})
-add_requires("catch2")
+add_requires(
+    "catch2", 
+    "tiltedcore", 
+    "mimalloc", 
+    "hopscotch-map", 
+    {configs = {rltgenrandom = true }})
 
 add_rules("mode.debug","mode.releasedbg", "mode.release")
 add_rules("plugin.vsxmake.autoupdate")
@@ -49,5 +53,6 @@ target("TiltedScript_Tests")
     set_kind("binary")
     set_group("Tests")
     add_files("Code/tests/src/*.cpp")
-    add_deps("TiltedScript")
-    add_packages("tiltedcore", "catch2", "hopscotch-map")
+    add_includedirs("Code/script/include/", "ThirdParty/lua/", "ThirdParty/sqlite3")
+    add_deps("TiltedScript", "lua", "sqlite3")
+    add_packages("catch2", "tiltedcore", "hopscotch-map")

@@ -1,12 +1,13 @@
 
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 
 extern "C"
 {
-#include "lsqlite3.h"
-#include "lauxlib.h"
+#include <lua.h>
+#include <lauxlib.h>
 }
 
+#include <lsqlite3.h>
 // stl
 #include <filesystem>
 // end stl
@@ -18,8 +19,7 @@ extern "C"
 // end TiltedCore
 
 #include "sol.hpp"
-#include "ScriptStore.h"
-
+#include <ScriptStore.h>
 
 TEST_CASE("Script Store Load", "[replication.store]")
 {

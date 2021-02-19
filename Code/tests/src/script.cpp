@@ -1,12 +1,13 @@
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 #include <iostream>
 
 extern "C"
 {
-#include "lsqlite3.h"
-#include "lauxlib.h"
+#include <lauxlib.h>
+#include <lua.h>
 }
 
+#include <lsqlite3.h>
 #include "sol.hpp"
 
 
