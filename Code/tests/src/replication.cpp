@@ -7,6 +7,7 @@
 
 // TiltedCore
 #include <TiltedCore/Stl.hpp>
+#include <TiltedCore/Outcome.hpp>
 #include <TiltedCore/Buffer.hpp>
 // end TiltedCore
 
