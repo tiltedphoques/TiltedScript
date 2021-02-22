@@ -13,6 +13,9 @@
 #include <TiltedCore/Outcome.hpp>
 #include <TiltedCore/Vector3.hpp>
 #include <TiltedCore/Filesystem.hpp>
+#include <TiltedCore/Vector3.hpp>
+#include <TiltedCore/Buffer.hpp>
+#include <TiltedCore/Serialization.hpp>
 
 #include <any>
 #include <mutex>
@@ -21,6 +24,9 @@
 #include <filesystem>
 #include <codecvt>
 #include <fstream>
+#include <iostream>
+#include <utility>
+
 
 extern "C"
 {
@@ -30,7 +36,7 @@ extern "C"
 #include <lsqlite3.h>
 
 #define SOL_ALL_SAFETIES_ON 1
-#include <sol.hpp>
+#include <sol/sol.hpp>
 
 using namespace TiltedPhoques;
 

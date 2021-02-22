@@ -1,8 +1,9 @@
+#include <TiltedScriptPCH.h>
+
 #include <NetObjectDefinition.h>
 #include <NetObject.h>
 #include <ScriptContext.h>
 #include <NetState.h>
-#include <utility>
 
 NetObjectDefinition::NetObjectDefinition(ScriptContext& aContext, sol::table& aTable, String aClassname, TiltedPhoques::SharedPtr<NetState> aParentState, uint32_t aId)
     : m_className(std::move(aClassname))

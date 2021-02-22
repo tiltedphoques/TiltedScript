@@ -8,7 +8,7 @@ extern "C"
 }
 
 #include <lsqlite3.h>
-#include "sol.hpp"
+#include <sol/sol.hpp>
 
 
 TEST_CASE("Basic script", "[script.basic]")

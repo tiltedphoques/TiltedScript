@@ -1,11 +1,10 @@
+#include <TiltedScriptPCH.h>
+
 #include "NetState.h"
 #include "NetObject.h"
 #include "NetObjectDefinition.h"
-#include "TiltedCore/Serialization.hpp"
 #include "ScriptStore.h"
 #include "ScriptContext.h"
-
-#include <fstream>
 
 using TiltedPhoques::Serialization;
 using TiltedPhoques::Buffer;

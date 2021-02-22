@@ -1,7 +1,6 @@
-#include "ScriptStore.h"
-#include <iostream>
+#include <TiltedScriptPCH.h>
 
-#include <TiltedCore/Vector3.hpp>
+#include "ScriptStore.h"
 
 ScriptStore::ScriptStore(bool aIsAuthority)
     : m_authority(aIsAuthority),

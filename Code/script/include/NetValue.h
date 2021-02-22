@@ -1,9 +1,5 @@
 #pragma once
 
-#include <sol.hpp>
-#include <TiltedCore/Buffer.hpp>
-#include <variant>
-
 // Bool must be index 0 for microsoft not to fuck up
 using NetValueParent = std::variant<bool, std::string, double>;
 

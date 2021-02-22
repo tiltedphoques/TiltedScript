@@ -2,9 +2,6 @@
 
 #include <NetObject.h>
 #include <NetObjectDefinition.h>
-#include <filesystem>
-
-#include <TiltedCore/Outcome.hpp>
 
 struct ScriptContext : sol::state
 {

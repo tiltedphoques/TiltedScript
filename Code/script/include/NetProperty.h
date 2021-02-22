@@ -1,8 +1,5 @@
 #pragma once
 
-#include <TiltedCore/Stl.hpp>
-#include <TiltedCore/Buffer.hpp>
-
 #include <NetValue.h>
 
 struct NetObject;

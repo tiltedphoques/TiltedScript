@@ -1,24 +1,16 @@
 
 #include <catch2/catch.hpp>
 
-extern "C"
-{
-#include <lua.h>
-#include <lauxlib.h>
-}
-
-#include <lsqlite3.h>
 // stl
 #include <filesystem>
 // end stl
 
 // TiltedCore
-
 #include <TiltedCore/Stl.hpp>
-#include <TiltedCore/Outcome.hpp>
+#include <TiltedCore/Buffer.hpp>
 // end TiltedCore
 
-#include "sol.hpp"
+#include <sol/sol.hpp>
 #include <ScriptStore.h>
 
 TEST_CASE("Script Store Load", "[replication.store]")
