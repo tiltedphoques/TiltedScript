@@ -3,10 +3,11 @@ set_languages("cxx17")
 set_xmakever("2.5.1")
 
 add_requires(
-    "catch2", 
-    "tiltedcore", 
-    "mimalloc", 
-    "hopscotch-map", 
+    "catch2",
+    "tiltedcore",
+    "mimalloc",
+    "hopscotch-map",
+    "sqlite3",
     {configs = {rltgenrandom = true }})
 
 add_rules("mode.debug","mode.releasedbg", "mode.release")
@@ -27,32 +28,23 @@ target("lua")
     add_headerfiles("ThirdParty/lua/*.h")
     add_includedirs("ThirdParty/lua", {public = true})
 
-target("sqlite3")
-    set_kind("static")
-    set_group("Libraries")
-    set_languages("c11")
-    add_files("ThirdParty/sqlite3/sqlite3.c")
-    add_headerfiles("ThirdParty/sqlite3/sqlite3.h")
-    add_includedirs("ThirdParty/sqlite3", {public = true})
-    add_defines("SQLITE_OMIT_LOAD_EXTENSION")
-
 target("TiltedScript")
     set_kind("static")
     set_group("Libraries")
     add_files("Code/script/src/*.cpp")
     add_includedirs("Code/script/include/", "ThirdParty/lua/", "ThirdParty/sqlite3", {public = true})
     add_headerfiles(
-        "Code/script/include/*.hpp", 
-        "Code/script/include/*.h", 
-        "Code/script/include/*.inl", 
+        "Code/script/include/*.hpp",
+        "Code/script/include/*.h",
+        "Code/script/include/*.inl",
     {prefixdir = "TiltedScript"})
-    add_deps("lua", "sqlite3")
-    add_packages("tiltedcore", "mimalloc", "hopscotch-map")
+    add_deps("lua")
+    add_packages("tiltedcore", "mimalloc", "hopscotch-map", "sqlite3")
 
 target("TiltedScript_Tests")
     set_kind("binary")
     set_group("Tests")
     add_files("Code/tests/src/*.cpp")
     add_includedirs("Code/script/include/", "ThirdParty/lua/", "ThirdParty/sqlite3")
-    add_deps("TiltedScript", "lua", "sqlite3")
-    add_packages("catch2", "tiltedcore", "hopscotch-map")
+    add_deps("TiltedScript", "lua")
+    add_packages("catch2", "tiltedcore", "hopscotch-map", "sqlite3")
