@@ -8,9 +8,7 @@ add_requires(
     "mimalloc",
     "hopscotch-map",
     "sqlite3",
-    "lua",
-    "sol2",
-    {configs = {rltgenrandom = true }})
+    "sol2")
 
 add_rules("mode.debug","mode.releasedbg", "mode.release")
 add_rules("plugin.vsxmake.autoupdate")
