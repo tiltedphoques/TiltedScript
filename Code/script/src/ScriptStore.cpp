@@ -105,18 +105,18 @@ void ScriptStore::RegisterExtensions(ScriptContext& aContext)
         return this->Print(aState);
     };
 
-    using TVec3 = TiltedPhoques::Vector3<float>;
+    using TVec3 = glm::vec3;
 
     auto vector3Type = aContext.new_usertype<TVec3>("Vec3", sol::constructors<TVec3(), TVec3(float, float, float), TVec3(const TVec3&)>(),
-        sol::meta_function::addition, &TVec3::operator+,
-        sol::meta_function::subtraction, &TVec3::operator-,
-        sol::meta_function::multiplication, &TVec3::operator*,
-        sol::meta_function::to_string, [](TVec3& v) { return std::string("x: ") + std::to_string(v.m_x) + " y: " + std::to_string(v.m_y) + " z: " + std::to_string(v.m_z); },
-        "length", &TVec3::Length);
+        sol::meta_function::addition, [](const TVec3& a, const TVec3& b) { glm::vec3 r{ a }; r += b; return r; },
+        sol::meta_function::subtraction, [](const TVec3& a, const TVec3& b) { glm::vec3 r{ a }; r -= b; return r; },
+        sol::meta_function::multiplication, [](const TVec3& a, const TVec3& b) { glm::vec3 r{ a }; r *= b; return r; },
+        sol::meta_function::to_string, [](TVec3& v) { return std::string("x: ") + std::to_string(v.x) + " y: " + std::to_string(v.y) + " z: " + std::to_string(v.z); },
+        "length", &TVec3::length);
 
-    vector3Type["x"] = &TVec3::m_x;
-    vector3Type["y"] = &TVec3::m_y;
-    vector3Type["z"] = &TVec3::m_z;
+    vector3Type["x"] = &TVec3::x;
+    vector3Type["y"] = &TVec3::y;
+    vector3Type["z"] = &TVec3::z;
 
     aContext.set_function("print", Print);
 }

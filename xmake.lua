@@ -5,10 +5,10 @@ set_xmakever("2.5.1")
 add_requires(
     "catch2",
     "tiltedcore",
-    "mimalloc",
     "hopscotch-map",
     "sqlite3",
-    "sol2")
+    "sol2",
+    "glm")
 
 add_rules("mode.debug","mode.releasedbg", "mode.release")
 add_rules("plugin.vsxmake.autoupdate")
@@ -31,7 +31,7 @@ target("TiltedScript")
         "Code/script/include/*.inl",
     {prefixdir = "TiltedScript"})
     set_pcxxheader("Code/script/include/TiltedScriptPCH.h")
-    add_packages("tiltedcore", "mimalloc", "hopscotch-map", "sqlite3", "lua", "sol2")
+    add_packages("tiltedcore", "mimalloc", "hopscotch-map", "sqlite3", "lua", "sol2", "glm")
 
 target("TiltedScript_Tests")
     set_kind("binary")
@@ -39,4 +39,4 @@ target("TiltedScript_Tests")
     add_files("Code/tests/src/*.cpp")
     add_includedirs("Code/script/include/")
     add_deps("TiltedScript")
-    add_packages("catch2", "tiltedcore", "hopscotch-map", "sqlite3", "lua", "sol2")
+    add_packages("catch2", "tiltedcore", "hopscotch-map", "sqlite3", "lua", "sol2", "glm")

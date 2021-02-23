@@ -11,9 +11,7 @@
 #include <TiltedCore/ScratchAllocator.hpp>
 #include <TiltedCore/Stl.hpp>
 #include <TiltedCore/Outcome.hpp>
-#include <TiltedCore/Vector3.hpp>
 #include <TiltedCore/Filesystem.hpp>
-#include <TiltedCore/Vector3.hpp>
 #include <TiltedCore/Buffer.hpp>
 #include <TiltedCore/Serialization.hpp>
 
@@ -26,6 +24,8 @@
 #include <fstream>
 #include <iostream>
 #include <utility>
+
+#include <glm/glm.hpp>
 
 
 extern "C"
