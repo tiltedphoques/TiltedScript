@@ -47,3 +47,5 @@ private:
     uint32_t m_parentId;
     uint32_t m_ownerId;
 };
+
+#include "NetRPCs.inl"

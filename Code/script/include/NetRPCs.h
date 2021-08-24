@@ -41,5 +41,3 @@ private:
     NetObject& m_parent;
     TiltedPhoques::Vector<Call> m_calls;
 };
-
-#include "NetRPCs.inl"
